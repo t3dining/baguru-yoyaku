@@ -79,15 +79,17 @@
       }
     }
     var gridStyle = 'width:' + W + 'px;background-size:' + (M.px * 60 / M.slot) + 'px 100%,' + M.px + 'px 100%;background-position:' + (-(vf % 60) / M.slot * M.px) + 'px 0,0 0';
-    var body = '';
+    var body = '', pk = D.picking(), pa = pk && pk.o.date === date ? D.toMin(pk.o.start) : -1;
     [{ id: '', name: '未割り当て', cap: '' }].concat(tables).forEach(function (t) {
       var placed = lanesOf(byT[t.id] || []), n = placed.reduce(function (m, p) { return Math.max(m, p.lane + 1); }, 1);
       if (t.id === '' && !placed.length && !D.isPhone()) n = 1;
       var hh = n * M.laneH;
-      body += '<div class="sch-row' + (t.id === '' ? ' loose' : '') + '" style="height:' + hh + 'px">'
+      var picked = pa >= 0 && t.id && pk.tables.indexOf(t.id) >= 0;
+      body += '<div class="sch-row' + (t.id === '' ? ' loose' : '') + (picked ? ' picked' : '') + '" style="height:' + hh + 'px">'
         + '<div class="sch-name" style="width:' + M.nameW + 'px"><b>' + esc(t.name) + '</b>' + (t.cap ? '<small>' + t.cap + '名</small>' : '') + '</div>'
         + '<div class="sch-lane" data-t="' + esc(t.id) + '" style="' + gridStyle + ';height:' + hh + 'px">'
-        + placed.map(function (p) { return barHtml(p.r, p.lane, t.id); }).join('') + '</div></div>';
+        + placed.map(function (p) { return barHtml(p.r, p.lane, t.id); }).join('')
+        + (picked ? '<i class="pick-mark" style="left:' + x(pa) + 'px;width:' + (x(pa + (st.conf.keep || 90)) - x(pa)) + 'px"></i>' : '') + '</div></div>';
     });
     var nowLine = date === st.today ? '<i class="sch-now" id="sch-now" style="left:' + (M.nameW + x(D.nowMin())) + 'px"></i>' : '';
     var sl = scroller.scrollLeft, stp = scroller.scrollTop;
@@ -108,6 +110,7 @@
   scroller.addEventListener('click', function (e) {
     if (suppressClick) { suppressClick = false; return; }
     if (edit) return;
+    if (D.picking()) { var pl = e.target.closest('.sch-lane'); if (pl && pl.dataset.t) D.pickToggle(pl.dataset.t); return; }   // 席を足している途中
     var bar = e.target.closest('.bar');
     if (bar) { D.openBooking(bar.dataset.id); return; }
     var lane = e.target.closest('.sch-lane');
@@ -123,7 +126,7 @@
   /* ---------- 長押しで動かす（タブレット・パソコン） ---------- */
   scroller.addEventListener('pointerdown', function (e) {
     var bar = e.target.closest('.bar');
-    if (!bar || D.isPhone()) return;
+    if (!bar || D.isPhone() || D.picking()) return;
     if (edit) {
       if (bar.dataset.id === edit.r.id && bar.dataset.t === edit.from) startDrag(e, bar, e.target.closest('.grip') ? 'resize' : 'move');
       return;

@@ -22,7 +22,7 @@
   }
 
   function render() {
-    var today = st.today, now = D.nowMin(), rows = D.rowsOn(today);
+    var today = st.today, now = D.nowMin(), rows = D.rowsOn(today), pk = D.picking();
     var tables = D.shownTables();
     $('floor-tools').innerHTML = '<b>' + esc(D.ymdJp(today)) + '</b><span class="muted">今日の席の様子</span>'
       + '<span class="legend"><i class="lg free"></i>空き<i class="lg s-in"></i>着席中<i class="lg soon"></i>残りわずか<i class="lg over"></i>確保時間を過ぎた</span>'
@@ -48,7 +48,7 @@
       }
       var chairs = Math.max(1, Math.ceil(t.cap / 2)), ch1 = '';
       for (var i = 0; i < chairs; i++) ch1 += '<i></i>';
-      return '<button type="button" class="' + cls + (side.sel === t.id ? ' sel' : '') + '" data-t="' + esc(t.id) + '" style="left:' + t.x + 'px;top:' + t.y + 'px;width:' + t.w + 'px;height:' + t.h + 'px">'
+      return '<button type="button" class="' + cls + (side.sel === t.id ? ' sel' : '') + (pk && pk.o.date === st.today && pk.tables.indexOf(t.id) >= 0 ? ' picked' : '') + '" data-t="' + esc(t.id) + '" style="left:' + t.x + 'px;top:' + t.y + 'px;width:' + t.w + 'px;height:' + t.h + 'px">'
         + '<span class="chairs ch-top">' + ch1 + '</span><span class="ft-box">' + inner + '</span><span class="chairs ch-bottom">' + ch1 + '</span>'
         + bubble + '<span class="ft-name">' + esc(t.name) + '</span></button>';
     }).join('');
@@ -107,6 +107,7 @@
     }
     var tile = e.target.closest('.ft');
     if (!tile) return;
+    if (D.picking()) return D.pickToggle(tile.dataset.t);   // 席を足している途中
     var t = D.table(tile.dataset.t), s = stateOf(t, D.rowsOn(st.today), D.nowMin());
     side.sel = t.id; side.tab = 'seat';
     render();
