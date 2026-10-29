@@ -46,6 +46,12 @@
 
   /* ---------- 人数の窓 ---------- */
   var pop = $('pop');
+  /** 席の名前と人数（人数の窓の見出し） */
+  D.seatLabel = function (tables) {
+    if (!tables.length) return '席なし';
+    var total = tables.reduce(function (n, id) { var t = D.table(id); return n + (t ? t.cap : 0); }, 0);
+    return D.tableNames(tables) + '（' + total + '名）';
+  };
   D.numpad = function (o) {
     var people = o.people || 0, isToday = o.date === st.today;
     function html() {
@@ -54,6 +60,7 @@
       return '<div class="pop-in"><div class="pop-head"><b>' + esc(o.label) + '</b><button type="button" class="x" data-p="close" aria-label="閉じる"><svg class="i"><use href="#i-x"/></svg></button></div>'
         + '<p class="pop-q">何名様ですか？</p><div class="np-grid">' + nums + '</div>'
         + '<label class="np-more">13名から<input type="number" min="1" max="200" inputmode="numeric" id="np-more" value="' + (people > 12 ? people : '') + '">名</label>'
+        + '<button type="button" class="np-seat" data-p="seat"><svg class="i"><use href="#i-plus"/></svg>' + ((o.tables || []).length ? '席を足す・選び直す' : '席を選ぶ') + '</button>'
         + '<div class="pop-acts"><button type="button" class="btn dark" data-p="book"' + (people ? '' : ' disabled') + '>予約登録</button>'
         + (isToday ? '<button type="button" class="btn ok" data-p="walk"' + (people ? '' : ' disabled') + '>直接来店</button>' : '') + '</div></div>';
     }
@@ -75,11 +82,30 @@
       var more = Number(($('np-more') || {}).value || 0);
       if (more > 0) people = more;
       if (b.dataset.p === 'close') return D.closeNumpad();
+      if (b.dataset.p === 'seat') return chooseSeats();
       if (!people) return;
       D.closeNumpad();
       if (b.dataset.p === 'book') D.openRegister({ date: o.date, start: o.start, people: people, tables: o.tables || [], step: 3 });
       if (b.dataset.p === 'walk') D.walkIn(people, o.tables || []);
     };
+    // 席を何卓でも選ぶ（予約登録の2段目と同じ部品）。選んだら、人数の窓に戻る
+    function chooseSeats() {
+      D.closeNumpad();
+      var m = D.modal('<h2>席を選ぶ</h2><p class="m-text">' + esc(D.jp(o.date) + ' ' + o.start + (people ? '　' + people + '名' : '')) + '</p>'
+        + '<p class="m-sub">押すたびに足せます。もう一度押すと外れます</p><div id="np-tables"></div>'
+        + '<div class="m-acts"><button type="button" class="btn" data-a="no">やめる</button><button type="button" class="btn dark" data-a="yes">この席にする</button></div>');
+      var chooser = D.tableChooser(m.querySelector('#np-tables'), { date: o.date, start: o.start, keep: st.conf.keep || 90, people: people, selected: o.tables || [] });
+      m.onclick = function (e) {
+        var b = e.target.closest('[data-a]');
+        if (!b) return;
+        D.closeModal();
+        var next = {};
+        Object.keys(o).forEach(function (k) { next[k] = o[k]; });
+        next.people = people;
+        if (b.dataset.a === 'yes') { next.tables = chooser.value(); next.label = D.seatLabel(next.tables) + (o.suffix || ''); }
+        D.numpad(next);
+      };
+    }
     pop.oninput = function (e) { if (e.target.id === 'np-more') { people = Number(e.target.value) || 0; pop.querySelectorAll('[data-p="book"],[data-p="walk"]').forEach(function (x) { x.disabled = !people; }); } };
   };
   D.closeNumpad = function () { pop.hidden = true; pop.innerHTML = ''; };

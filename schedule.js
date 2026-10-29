@@ -116,7 +116,7 @@
     var m = vf + Math.floor((e.clientX - rect.left) / M.px) * M.slot;
     if (m < vf || m >= vt) return;
     var t = lane.dataset.t, tb = t ? D.table(t) : null;
-    D.numpad({ x: e.clientX, y: e.clientY, date: st.date, start: D.hm(m), tables: t ? [t] : [], label: (tb ? tb.name + '（' + tb.cap + '名）' : '未割り当て') + '　' + D.hm(m) });
+    D.numpad({ x: e.clientX, y: e.clientY, date: st.date, start: D.hm(m), tables: t ? [t] : [], label: (tb ? tb.name + '（' + tb.cap + '名）' : '未割り当て') + '　' + D.hm(m), suffix: '　' + D.hm(m) });
   });
   scroller.addEventListener('contextmenu', function (e) { if (e.target.closest('.bar')) e.preventDefault(); });
 

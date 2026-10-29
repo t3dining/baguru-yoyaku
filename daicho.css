@@ -158,6 +158,7 @@ p{margin:0}
 .np.on{background:var(--coal); border-color:var(--coal); color:#fff}
 .np-more{display:flex; align-items:center; gap:6px; margin:10px 0; font-size:13px; color:var(--muted)}
 .np-more input{width:80px; padding:8px; border:1px solid var(--line2); border-radius:var(--r)}
+.np-seat{display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-height:42px; margin:0 0 10px; border:1px dashed var(--line2); background:#faf7f2; border-radius:var(--r); font-weight:700; font-size:14px; color:var(--coal)}
 .pop-acts{display:flex; gap:8px}
 .pop-acts .btn{flex:1}
 .x{display:grid; place-items:center; width:40px; height:40px; border:0; background:none; border-radius:50%; color:inherit; flex:none}
@@ -289,7 +290,8 @@ dl.conf dd{margin:0; font-weight:700}
 .m-sub{font-size:13px; color:var(--muted); margin:8px 0}
 .m-note{font-size:13px; color:var(--ember2); font-weight:700; margin-top:8px}
 .m-choices{display:grid; gap:8px; margin:12px 0}
-.m-acts{display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:14px}
+.m-acts{display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:14px;
+  position:sticky; bottom:-16px; margin-bottom:-16px; padding:10px 0 16px; background:#fff}   /* 窓が長くても、ボタンはいつも下に見える */
 .toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:70; width:max-content; max-width:calc(100% - 32px); background:var(--coal); color:#fff; padding:12px 16px; border-radius:var(--r); box-shadow:0 6px 24px rgba(0,0,0,.25); font-weight:700; display:flex; align-items:center; gap:12px}
 .toast.is-warn{background:#8d2412}
 .toast a{color:#ffd9a8}
