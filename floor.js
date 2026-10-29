@@ -102,7 +102,7 @@
       if (fb.dataset.f === 'tmp') return D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(now - now % 5), tables: [], label: '臨時（席なし）' });
       if (fb.dataset.f === 'walk' || fb.dataset.f === 'book') {
         var t0 = D.table(side.sel);
-        return D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(now + 15 - now % 15), tables: [side.sel], label: t0.name + '（' + t0.cap + '名）' });
+        return D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(D.nextStep(now)), tables: [side.sel], label: t0.name + '（' + t0.cap + '名）' });
       }
     }
     var tile = e.target.closest('.ft');
@@ -112,7 +112,7 @@
     render();
     if (!s.seated) {
       var n = D.nowMin();
-      D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(n + 15 - n % 15), tables: [t.id], label: t.name + '（' + t.cap + '名）' });
+      D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(D.nextStep(n)), tables: [t.id], label: t.name + '（' + t.cap + '名）' });
     }
   });
   box.addEventListener('change', function (e) {

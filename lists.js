@@ -91,9 +91,9 @@
     if (R.tab === 'todo') {
       h += '<ol class="howto"><li>スケジュールで空きを見て、席を決める</li><li>入れるなら「承認する」、入れないなら「お断りする」</li><li>お客様に確定・お断りのメールが届く</li></ol>';
       h += todo.length ? todo.map(reqCard).join('') : '<p class="empty">承認待ちのリクエストはありません。</p>';
-      if (!st.conf.accepting) h = '<p class="stopped">ホームページのネット予約は、今は止めています（スプレッドシートのタブ「設定」）。</p>' + h;
+      if (!st.conf.accepting) h = '<p class="stopped">ネット予約（ホームページ・アプリ）は、今は止めています（スプレッドシートのタブ「設定」）。</p>' + h;
     } else {
-      h += hist.length ? '<div class="lst">' + hist.map(function (r) { return rowLine(r, true); }).join('') + '</div>' : '<p class="empty">この2週間に、ホームページからの予約はありません。</p>';
+      h += hist.length ? '<div class="lst">' + hist.map(function (r) { return rowLine(r, true); }).join('') + '</div>' : '<p class="empty">この2週間に、ホームページ・アプリからの予約はありません。</p>';
     }
     $('v-requests').innerHTML = h;
   }

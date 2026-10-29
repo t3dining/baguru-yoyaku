@@ -107,7 +107,7 @@
   D.openRegister = function (o) {
     o = o || {};
     var r = o.row;
-    var now = D.nowMin(), nextQ = D.hm(Math.min(23 * 60 + 45, now + 15 - now % 15));
+    var now = D.nowMin(), nextQ = D.hm(Math.min(23 * 60 + 50, D.nextStep(now)));
     f = r ? {
       id: r.id, expect: r.updatedAt, date: r.date, start: r.start, people: r.people, keep: r.keep, tables: r.tables.slice(),
       name: r.name, kana: r.kana, tel: r.tel, email: r.email, route: r.route, keywords: r.keywords.slice(), memo: r.memo,
@@ -160,7 +160,7 @@
     var times = '';
     for (var h = Math.floor(vf / 60); h * 60 < vt; h++) {
       times += '<div class="trow"><span class="th">' + h + '時</span>';
-      for (var q = 0; q < 60; q += 15) {
+      for (var q = 0; q < 60; q += D.STEP) {
         var m = h * 60 + q, t = D.hm(m);
         times += '<button type="button" class="tchip' + (t === f.start ? ' on' : '') + (open.length && !inOpen(m) ? ' off' : '') + '" data-tm="' + t + '">' + t + '</button>';
       }

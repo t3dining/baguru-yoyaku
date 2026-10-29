@@ -8,7 +8,7 @@
   'use strict';
   var D = window.D, esc = D.esc, st = D.st, ST = D.ST, $ = D.$;
   var box = $('v-schedule');
-  var M = { slot: 15, px: 30, laneH: 40, nameW: 92 };
+  var M = { slot: D.STEP, px: 20, laneH: 40, nameW: 92 };
   var edit = null, drag = null, press = null, suppressClick = false, scrolledFor = '';
   var vf = 600, vt = 1410;
 
@@ -17,7 +17,7 @@
 
   function metrics() {
     var ph = D.isPhone();
-    M.px = ph ? 22 : 30; M.nameW = ph ? 58 : 92; M.laneH = ph ? 38 : 40;
+    M.px = ph ? 15 : 20;   // 1きざみ（10分）の幅 M.nameW = ph ? 58 : 92; M.laneH = ph ? 38 : 40;
     vf = D.toMin(st.conf.viewFrom || '10:00'); vt = D.toMin(st.conf.viewTo || '23:30');
   }
   function x(min) { return (min - vf) / M.slot * M.px; }
@@ -78,7 +78,7 @@
         if (b > a) bg += '<i class="off" style="left:' + x(a) + 'px;width:' + (x(b) - x(a)) + 'px"></i>';
       }
     }
-    var gridStyle = 'width:' + W + 'px;background-size:' + (M.px * 4) + 'px 100%,' + M.px + 'px 100%;background-position:' + (-(vf % 60) / M.slot * M.px) + 'px 0,0 0';
+    var gridStyle = 'width:' + W + 'px;background-size:' + (M.px * 60 / M.slot) + 'px 100%,' + M.px + 'px 100%;background-position:' + (-(vf % 60) / M.slot * M.px) + 'px 0,0 0';
     var body = '';
     [{ id: '', name: '未割り当て', cap: '' }].concat(tables).forEach(function (t) {
       var placed = lanesOf(byT[t.id] || []), n = placed.reduce(function (m, p) { return Math.max(m, p.lane + 1); }, 1);

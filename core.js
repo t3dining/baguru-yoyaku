@@ -36,6 +36,8 @@
   D.ymdOf = function (ms) { var d = new Date(ms); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
   D.minOf = function (ms) { var d = new Date(ms); return d.getHours() * 60 + d.getMinutes(); };
   D.nowMin = function () { return D.minOf(Date.now()); };
+  D.STEP = 10;   // 時刻のきざみ（分）：予約登録の時刻・直接来店の時刻・スケジュールで動かすきざみ。ネット予約の「枠の間隔」とそろえる
+  D.nextStep = function (m) { return m + D.STEP - m % D.STEP; };   // 次のきざみ（11:03 → 11:10、11:10 → 11:20）
   D.jp = A.jp; D.md = A.md; D.wd = A.wd;
   D.ymdJp = function (ymd) { var p = ymd.split('-'); return p[0] + '/' + Number(p[1]) + '/' + Number(p[2]) + '（' + A.wd(ymd) + '）'; };
   D.clock = function (ms) { var d = new Date(ms); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
@@ -221,7 +223,7 @@
     ['badge-req', 'badge-req2'].forEach(function (id) { var b = $(id); b.textContent = st.pending.length; b.hidden = !st.pending.length; });
     if (!n.length) { $('newbar').hidden = true; told = 0; return; }
     var latest = n[n.length - 1];
-    $('newbar-text').textContent = 'ホームページから新しいリクエストが ' + n.length + '件（' + A.md(latest.date) + ' ' + latest.start + ' ' + latest.people + '名' + (n.length > 1 ? ' 他' : '') + '）';
+    $('newbar-text').textContent = 'ホームページ・アプリから新しいリクエストが ' + n.length + '件（' + A.md(latest.date) + ' ' + latest.start + ' ' + latest.people + '名' + (n.length > 1 ? ' 他' : '') + '）';
     $('newbar').hidden = false;
     if (n.length > told && st.sound) D.beep();
     told = n.length;
@@ -336,6 +338,7 @@
     var h = '';
     if (r.cust && r.cust.caution) h += '<i class="ic ic-warn" title="要確認">！</i>';
     if (r.route === 'ホームページ') h += '<i class="ic ic-web" title="ホームページから">HP</i>';
+    else if (r.route === 'アプリ') h += '<i class="ic ic-web" title="お客さまのアプリから">アプリ</i>';
     if (r.kids || r.keywords.indexOf('お子様連れ') >= 0) h += '<i class="ic" title="お子様連れ">子</i>';
     if (r.keywords.indexOf('誕生日') >= 0 || r.keywords.indexOf('記念日') >= 0) h += '<i class="ic ic-cele" title="お祝い">祝</i>';
     if (r.dessert) h += '<i class="ic ic-cele" title="デザートプレート">デ</i>';

@@ -34,7 +34,7 @@
       + custLine
       + '<p class="dt-contact">' + D.telLink(r.tel) + (r.email ? '<span class="mail">' + esc(r.email) + '</span>' : '') + '</p>'
       + (r.keywords.length ? '<p class="dt-kw">' + r.keywords.map(function (k) { return '<span>' + esc(k) + '</span>'; }).join('') + '</p>' : '')
-      + (r.note ? '<p class="dt-note"><b>ご要望（ホームページ）</b>' + esc(r.note) + '</p>' : '')
+      + (r.note ? '<p class="dt-note"><b>ご要望（' + (r.route === 'アプリ' ? 'アプリ' : 'ホームページ') + '）</b>' + esc(r.note) + '</p>' : '')
       + (r.seat && r.seat !== 'どちらでも' ? '<p class="dt-note"><b>席の希望</b>' + esc(r.seat) + '</p>' : '')
       + (r.dessert ? '<p class="dt-note dt-dessert"><b>デザートプレート（税込1,100円）</b>' + (r.plateMsg ? 'メッセージ「' + esc(r.plateMsg) + '」' : 'メッセージなし') + '</p>' : '')
       + (r.memo ? '<p class="dt-memo"><b>メモ</b>' + esc(r.memo) + '</p>' : '')
