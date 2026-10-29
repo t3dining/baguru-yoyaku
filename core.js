@@ -77,8 +77,8 @@
   var ERR = D.ERR = {
     bad_pin: '合言葉が違います。', locked: '合言葉を何度も間違えたので、10分止まっています。',
     not_ready: '受け口がまだつながっていません（js/config.js）。', not_setup: '受け口の用意（setup）がまだです。',
-    not_found: 'その予約が見つかりません。読み直してください。', conflict: 'ほかの端末で先に変わっていました。読み直しました。',
-    already: 'ほかの端末で、先に対応されていました。', bad_date: '日にちと時刻を確かめてください。', bad_people: '人数を確かめてください。',
+    not_found: 'その予約が見つかりません。読み直してください。', conflict: '他の端末で先に変わっていました。読み直しました。',
+    already: '他の端末で、先に対応されていました。', bad_date: '日にちと時刻を確かめてください。', bad_people: '人数を確かめてください。',
     bad_keep: '確保時間を確かめてください。', need_name: 'お名前を入れてください。', bad_tel: '電話番号の形が違います。',
     bad_email: 'メールアドレスの形が違います。', same_tel: '同じ電話番号のお客様が、もう顧客台帳にいます。',
     need_table: '席が1つもありません。', same_id: '同じ席が2つあります。', unknown_action: '受け口の版が古いようです。デプロイし直してください。',
@@ -221,7 +221,7 @@
     ['badge-req', 'badge-req2'].forEach(function (id) { var b = $(id); b.textContent = st.pending.length; b.hidden = !st.pending.length; });
     if (!n.length) { $('newbar').hidden = true; told = 0; return; }
     var latest = n[n.length - 1];
-    $('newbar-text').textContent = 'ホームページから新しいリクエストが ' + n.length + '件（' + A.md(latest.date) + ' ' + latest.start + ' ' + latest.people + '名' + (n.length > 1 ? ' ほか' : '') + '）';
+    $('newbar-text').textContent = 'ホームページから新しいリクエストが ' + n.length + '件（' + A.md(latest.date) + ' ' + latest.start + ' ' + latest.people + '名' + (n.length > 1 ? ' 他' : '') + '）';
     $('newbar').hidden = false;
     if (n.length > told && st.sound) D.beep();
     told = n.length;

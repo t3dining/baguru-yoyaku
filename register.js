@@ -21,11 +21,11 @@
           var cl = D.clashes(o.date, [t.id], a, b, o.except), on = sel.indexOf(t.id) >= 0;
           return '<button type="button" class="tc' + (on ? ' on' : '') + (cl.length ? ' busy' : '') + '" data-t="' + esc(t.id) + '">'
             + '<b>' + esc(t.name) + '</b><small>' + t.cap + '名' + (t.kind !== 'テーブル' ? '・' + esc(t.kind) : '') + '</small>'
-            + '<em>' + (cl.length ? esc(cl[0].start + ' ' + D.name(cl[0])) + (cl.length > 1 ? ' ほか' : '') : '空き') + '</em></button>';
+            + '<em>' + (cl.length ? esc(cl[0].start + ' ' + D.name(cl[0])) + (cl.length > 1 ? ' 他' : '') : '空き') + '</em></button>';
         }).join('') + '</div></div>';
       }).join('')
         + (sel.length && lack > 0 ? '<p class="tc-warn ' + (lack >= 3 ? 'red' : 'yellow') + '">席が ' + lack + '名分 足りません（選んだ席 ' + total + '名・' + o.people + '名様）</p>' : '')
-        + (sel.some(function (id) { return D.clashes(o.date, [id], a, b, o.except).length; }) ? '<p class="tc-warn red">ほかの予約と重なる席を選んでいます（灰色の席）</p>' : '');
+        + (sel.some(function (id) { return D.clashes(o.date, [id], a, b, o.except).length; }) ? '<p class="tc-warn red">他の予約と重なる席を選んでいます（灰色の席）</p>' : '');
       if (o.onChange) o.onChange(sel, keep);
     }
     box.onclick = function (e) {
@@ -169,7 +169,7 @@
     var ppl = '';
     for (var p = 1; p <= 12; p++) ppl += '<button type="button" class="pchip' + (f.people === p ? ' on' : '') + '" data-pp="' + p + '">' + p + '名</button>';
     frame('<h3 class="q">いつ、何名様ですか？</h3>'
-      + '<p class="lbl">日にち</p><div class="dstrip">' + days + '<label class="dother">ほかの日<input type="date" id="r-date" value="' + f.date + '"></label></div>'
+      + '<p class="lbl">日にち</p><div class="dstrip">' + days + '<label class="dother">他の日<input type="date" id="r-date" value="' + f.date + '"></label></div>'
       + '<p class="lbl">時間<span class="adj"><button type="button" data-adj="-5">−5分</button><b>' + esc(f.start) + '</b><button type="button" data-adj="5">＋5分</button></span></p><div class="tgrid">' + times + '</div>'
       + '<p class="lbl">人数</p><div class="pgrid">' + ppl + '<label class="pmore"><input type="number" id="r-people" min="1" max="200" inputmode="numeric" value="' + (f.people > 12 ? f.people : '') + '">名</label></div>',
       '<button type="button" class="btn" data-r="skip"' + (f.people ? '' : ' disabled') + '>テーブル選択をスキップ</button>'
@@ -288,7 +288,7 @@
       D.openBooking(res.row.id);
     }).catch(function (e) {
       btn.disabled = false; btn.textContent = f && f.id ? 'この内容で変更する' : 'この内容で登録する';
-      if (e.code === 'conflict') { if (e.data && e.data.row) D.put(e.data.row); showErr('ほかの端末で先に変わっていました。いったん閉じて、もう一度「変更する」から開いてください。'); return; }
+      if (e.code === 'conflict') { if (e.data && e.data.row) D.put(e.data.row); showErr('他の端末で先に変わっていました。いったん閉じて、もう一度「変更する」から開いてください。'); return; }
       showErr('登録できませんでした：' + D.errText(e));
     });
   }

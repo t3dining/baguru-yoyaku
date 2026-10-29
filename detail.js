@@ -128,7 +128,7 @@
         D.put(row);
         // 送り直しで2回届いたときは、1回目で済んでいる
         if ((decision === '承認' && row.status !== ST.NO) || (decision === 'お断り' && row.status === ST.NO)) D.toast(esc(r.name) + ' 様を「' + decision + '」にしました');
-        else D.toast('ほかの端末で、先に「' + esc(row.status) + '」になっていました', { warn: true });
+        else D.toast('他の端末で、先に「' + esc(row.status) + '」になっていました', { warn: true });
         return;
       }
       D.toast('送れませんでした：' + esc(D.errText(e)), { warn: true });

@@ -50,7 +50,7 @@
       + '<div><label for="s-from">スケジュールに出す時間</label><span class="inl"><input type="time" id="s-from" step="900" value="' + esc(c.viewFrom || '10:00') + '">〜<input type="time" id="s-to" step="900" value="' + esc(c.viewTo || '23:30') + '"></span></div>'
       + '<div class="full"><label for="s-kw">キーワード（カンマで区切る）</label><input type="text" id="s-kw" value="' + esc((c.keywords || []).join(', ')) + '"></div></div>'
       + '<p class="err" id="conf-err" hidden></p><div class="set-acts"><button type="button" class="btn ember" data-s="conf">基本を保存する</button></div></section>'
-      + '<section class="set-sec"><h2>そのほかの受け方</h2><p class="muted">次の項目は、会社の Google ドライブのスプレッドシート「※勝手にさわらない＿バグる ネット予約」のタブ「設定」で変えます（変えるとすぐ効きます）。</p>'
+      + '<section class="set-sec"><h2>その他の受け方</h2><p class="muted">次の項目は、会社の Google ドライブのスプレッドシート「※勝手にさわらない＿バグる ネット予約」のタブ「設定」で変えます（変えるとすぐ効きます）。</p>'
       + '<ul class="set-list"><li>ネット予約を受け付ける（する／しない）</li><li>ホームページで受ける時刻（平日・土日祝）と、その間隔</li><li>ホームページから1枠で受ける組数・1組の最大人数</li><li>何日先まで・何時間前まで</li><li>定休日・休みにする日・営業する日</li><li>営業時間（スケジュールで灰色にする時間）</li><li>新しいリクエストを知らせるメール</li><li>予約経路の選び方</li></ul></section>'
       + '<section class="set-sec"><h2>この端末</h2><p class="muted">版 ' + esc(st.version || '') + '　最終更新 ' + esc(st.loadedAt ? D.clock(st.loadedAt) : '') + '</p>'
       + '<div class="set-acts left"><button type="button" class="btn" data-s="sound">' + (st.sound ? '音 オン（押すと消す）' : '音 オフ（押すと鳴らす）') + '</button><button type="button" class="btn" data-s="logout">ログアウト</button></div></section>';
