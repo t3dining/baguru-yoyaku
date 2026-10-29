@@ -10,7 +10,6 @@
         + '<button type="button" class="more-i" data-go="customers"><svg class="i"><use href="#i-user"/></svg>顧客台帳</button>'
         + '<button type="button" class="more-i" data-go="settings"><svg class="i"><use href="#i-gear"/></svg>設定</button>'
         + '<button type="button" class="more-i" data-go="sound"><svg class="i"><use href="#i-bell"/></svg>' + (st.sound ? '音 オン（押すと消す）' : '音 オフ（押すと鳴らす）') + '</button>'
-        + '<button type="button" class="more-i" data-go="reload"><svg class="i"><use href="#i-reload"/></svg>更新（画面と予約を読み直す）</button>'
         + '<button type="button" class="more-i" data-go="logout"><svg class="i"><use href="#i-out"/></svg>ログアウト</button>'
         + '<p class="muted">' + esc($('sync').textContent) + '</p></div>';
     }
@@ -23,7 +22,6 @@
     if (!b) return;
     if (b.dataset.go === 'sound') { $('b-sound').click(); return D.views.more.render(); }
     if (b.dataset.go === 'logout') return $('b-logout').click();
-    if (b.dataset.go === 'reload') return $('b-reload').click();
     D.show(b.dataset.go);
   });
 
@@ -51,7 +49,7 @@
     st.sound = !st.sound; D.set(D.KEY.sound, st.sound ? '1' : '0'); paintSound();
     if (st.sound) D.beep();
   });
-  /* 更新：ページごと読み直す（公開し直した新しい画面も、いまの予約も入る。合言葉はそのまま）。
+  /* 更新（上の帯の右）：ページごと読み直す（公開し直した新しい画面も、いまの予約も入る。合言葉はそのまま）。
      ホーム画面に置いたときは、ブラウザの読み直しのボタンが無いので */
   $('b-reload').addEventListener('click', function () {
     if ($('sheet').hidden) return location.reload();

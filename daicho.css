@@ -72,11 +72,12 @@ p{margin:0}
 .top{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--coal2); color:#fff; padding:8px 14px; min-height:60px}
 .top h1{font-size:18px; font-weight:900; letter-spacing:.04em}
 .top-l,.top-r{flex:1}
-.top-r{display:flex; justify-content:flex-end}
+.top-r{display:flex; justify-content:flex-end; gap:8px}
 .top-date{display:flex; align-items:center; gap:6px}
 .tbtn{display:inline-flex; align-items:center; gap:6px; min-height:42px; min-width:42px; padding:6px 12px; border:1px solid var(--line-d); background:var(--coal3); color:#fff; border-radius:var(--r); font-weight:700; font-size:18px; justify-content:center}
 .tbtn.today{font-size:14px}
 .tbtn.add{background:var(--ember); border-color:var(--ember); font-size:15px}
+.tbtn.reload{background:#fff; border-color:#fff; color:var(--coal); font-size:15px; white-space:nowrap}   /* 更新：黒い帯の中で目立つように白 */
 
 .dpick{position:relative; display:inline-flex; align-items:center; min-height:42px; padding:0 14px; border-radius:var(--r); background:#fff; color:var(--text); font-weight:900; font-size:18px; font-family:var(--en); letter-spacing:.02em; cursor:pointer}
 .dpick input{position:absolute; inset:0; opacity:0; width:100%; cursor:pointer}
@@ -435,6 +436,7 @@ dl.conf dd{margin:0; font-weight:700}
   .bnav .nav.on{box-shadow:inset 0 3px 0 var(--ember)}
   .top{flex-wrap:wrap; padding:6px 10px; min-height:0}
   .top-l{flex:1 1 auto}
+  .top-r{flex:none}
   .top h1{font-size:16px}
   .top-date{order:3; flex:1 1 100%; justify-content:center}
   .dpick{font-size:16px; padding:0 10px}
@@ -486,6 +488,7 @@ dl.conf dd{margin:0; font-weight:700}
 .btn.ok:active{background:var(--ok2)}
 .nav:active{background:var(--coal3)}
 .tbtn.add:active{background:var(--ember2)}
+.tbtn.reload:active{background:#f0e9df}
 .x:active{background:rgba(0,0,0,.08)}
 .lr:active{background:#fdfaf6}
 .cr:active{background:#fdfaf6}

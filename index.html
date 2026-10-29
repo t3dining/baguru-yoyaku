@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
-<link rel="stylesheet" href="daicho.css?v=ae203bd7">
+<link rel="stylesheet" href="daicho.css?v=4b4783d9">
 </head>
 <body>
 
@@ -45,7 +45,6 @@
     <button type="button" class="nav" data-view="customers"><svg class="i"><use href="#i-user"/></svg><span>顧客台帳</span></button>
     <button type="button" class="nav" data-view="settings"><svg class="i"><use href="#i-gear"/></svg><span>設定</span></button>
     <div class="side-foot">
-      <button type="button" class="nav small" id="b-reload" title="いちばん新しい画面と予約を読み直します"><svg class="i"><use href="#i-reload"/></svg><span>更新</span></button>
       <button type="button" class="nav small" id="b-sound" aria-pressed="false"><svg class="i"><use href="#i-bell"/></svg><span>音 オフ</span></button>
       <button type="button" class="nav small" id="b-logout"><svg class="i"><use href="#i-out"/></svg><span>ログアウト</span></button>
       <p class="sync" id="sync" role="status"></p>
@@ -53,7 +52,7 @@
   </nav>
 
   <div class="main">
-    <!-- 上の帯：日付と予約登録 -->
+    <!-- 上の帯：日付・更新・予約登録 -->
     <header class="top" id="top">
       <div class="top-l"><h1 id="view-title">スケジュール</h1></div>
       <div class="top-date" id="top-date">
@@ -63,6 +62,7 @@
         <button type="button" class="tbtn today" id="d-today">今日</button>
       </div>
       <div class="top-r">
+        <button type="button" class="tbtn reload" id="b-reload" title="いちばん新しい画面と予約を読み直します"><svg class="i"><use href="#i-reload"/></svg><span>更新</span></button>
         <button type="button" class="tbtn add" id="b-add"><svg class="i"><use href="#i-plus"/></svg><span>予約登録</span></button>
       </div>
     </header>
@@ -127,6 +127,6 @@
 <script src="floor.js?v=e4bde3a8" defer></script>
 <script src="lists.js?v=1535d419" defer></script>
 <script src="settings.js?v=ee2f89ff" defer></script>
-<script src="start.js?v=d27f5b2d" defer></script>
+<script src="start.js?v=adeaf838" defer></script>
 </body>
 </html>
