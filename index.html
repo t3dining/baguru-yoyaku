@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>予約ボード｜バグる</title>
+<meta name="theme-color" content="#15110f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="予約ボード">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="daicho.css?v=ae203bd7">
+</head>
+<body>
+
+<!-- 合言葉 -->
+<section class="login" id="login" hidden>
+  <div class="login-box">
+    <img src="logo.png" width="64" height="61" alt="">
+    <h1>予約ボード</h1>
+    <p>炭焼ハンバーグ バグる。お店のタブレットと、社員のスマホで使います。<br>「予約ボードの合言葉」を入れてください。</p>
+    <form id="login-form">
+      <label for="pin">合言葉</label>
+      <input type="password" id="pin" autocomplete="current-password" autocapitalize="off" spellcheck="false" required>
+      <button type="submit" class="btn ember big">始める</button>
+      <p class="err" id="login-err" role="alert" hidden></p>
+    </form>
+    <p class="note">合言葉はこの端末の中にだけ覚えます。お客様に見せないでください。</p>
+  </div>
+</section>
+
+<div class="app" id="app" hidden>
+  <!-- 左のメニュー -->
+  <nav class="side" id="side" aria-label="メニュー">
+    <div class="side-logo"><img src="logo.png" width="36" height="34" alt=""><b>予約ボード</b></div>
+    <button type="button" class="nav" data-view="requests"><svg class="i"><use href="#i-inbox"/></svg><span>予約受付</span><em class="badge" id="badge-req" hidden></em></button>
+    <button type="button" class="nav" data-view="floor"><svg class="i"><use href="#i-table"/></svg><span>テーブル管理</span></button>
+    <button type="button" class="nav" data-view="schedule"><svg class="i"><use href="#i-sched"/></svg><span>スケジュール</span></button>
+    <button type="button" class="nav" data-view="list"><svg class="i"><use href="#i-list"/></svg><span>予約リスト</span></button>
+    <button type="button" class="nav" data-view="customers"><svg class="i"><use href="#i-user"/></svg><span>顧客台帳</span></button>
+    <button type="button" class="nav" data-view="settings"><svg class="i"><use href="#i-gear"/></svg><span>設定</span></button>
+    <div class="side-foot">
+      <button type="button" class="nav small" id="b-sound" aria-pressed="false"><svg class="i"><use href="#i-bell"/></svg><span>音 オフ</span></button>
+      <button type="button" class="nav small" id="b-logout"><svg class="i"><use href="#i-out"/></svg><span>ログアウト</span></button>
+      <p class="sync" id="sync" role="status"></p>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- 上の帯：日付と予約登録 -->
+    <header class="top" id="top">
+      <div class="top-l"><h1 id="view-title">スケジュール</h1></div>
+      <div class="top-date" id="top-date">
+        <button type="button" class="tbtn" id="d-prev" aria-label="前の日">‹</button>
+        <label class="dpick"><span id="d-label"></span><input type="date" id="d-input" aria-label="日にちを選ぶ"></label>
+        <button type="button" class="tbtn" id="d-next" aria-label="次の日">›</button>
+        <button type="button" class="tbtn today" id="d-today">今日</button>
+      </div>
+      <div class="top-r">
+        <button type="button" class="tbtn add" id="b-add"><svg class="i"><use href="#i-plus"/></svg><span>予約登録</span></button>
+      </div>
+    </header>
+    <div class="newbar" id="newbar" role="alert" hidden><span id="newbar-text"></span><button type="button" id="newbar-go">見る</button></div>
+
+    <!-- 画面 -->
+    <section class="view" id="v-schedule" data-view="schedule"></section>
+    <section class="view" id="v-floor" data-view="floor" hidden></section>
+    <section class="view" id="v-list" data-view="list" hidden></section>
+    <section class="view" id="v-requests" data-view="requests" hidden></section>
+    <section class="view" id="v-customers" data-view="customers" hidden></section>
+    <section class="view" id="v-settings" data-view="settings" hidden></section>
+  </div>
+
+  <!-- 右から出る：予約の詳細・お客様の詳細 -->
+  <aside class="panel" id="panel" hidden aria-label="詳細">
+    <div class="panel-in" id="panel-in"></div>
+  </aside>
+</div>
+
+<!-- スマホの下のメニュー -->
+<nav class="bnav" id="bnav" hidden aria-label="メニュー">
+  <button type="button" class="nav" data-view="requests"><svg class="i"><use href="#i-inbox"/></svg><span>受付</span><em class="badge" id="badge-req2" hidden></em></button>
+  <button type="button" class="nav" data-view="floor"><svg class="i"><use href="#i-table"/></svg><span>テーブル</span></button>
+  <button type="button" class="nav" data-view="schedule"><svg class="i"><use href="#i-sched"/></svg><span>スケジュール</span></button>
+  <button type="button" class="nav" data-view="list"><svg class="i"><use href="#i-list"/></svg><span>リスト</span></button>
+  <button type="button" class="nav" data-view="more"><svg class="i"><use href="#i-menu"/></svg><span>その他</span></button>
+</nav>
+
+<!-- 予約登録・変更（全画面） -->
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sh-title"></div>
+<!-- 人数を入れる小さな窓 -->
+<div class="pop" id="pop" hidden></div>
+<!-- 確かめ・選ぶ窓 -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-in" id="modal-in"></div></div>
+<!-- バーを動かしているときの帯 -->
+<div class="editbar" id="editbar" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
+  <symbol id="i-table" viewBox="0 0 24 24"><path d="M4 9h16M6 9v10M18 9v10M8 5h8"/></symbol>
+  <symbol id="i-sched" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h6M8 16h9"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 3h4l2 5-3 2a12 12 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/></symbol>
+</svg>
+
+<script src="config.js?v=ae4605a4" defer></script>
+<script src="api.js?v=a467c71d" defer></script>
+<script src="core.js?v=a81fa54f" defer></script>
+<script src="detail.js?v=3821469e" defer></script>
+<script src="register.js?v=b933bb0a" defer></script>
+<script src="schedule.js?v=8e29cadd" defer></script>
+<script src="floor.js?v=56b9c24b" defer></script>
+<script src="lists.js?v=5ed8027d" defer></script>
+<script src="settings.js?v=4a8e6014" defer></script>
+<script src="start.js?v=ae275cdf" defer></script>
+</body>
+</html>
