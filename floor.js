@@ -2,7 +2,7 @@
    ・席の配置図に、いまの様子を出す：空き＝白、着席中＝緑（確保時間の残り15分でオレンジ、過ぎたら赤）、次の予約の時刻を吹き出しで
    ・空いている席を押す → 人数の窓 →「直接来店」か「予約登録」。座っている席を押す → 右の「席情報」（退店・来店取消）
    ・右の「今日の予約」は、直接来店・来店済みを除いて見られる
-   ・「臨時」は、席を決めずに直接来店を入れる */
+   ・「臨時（席なしで直接来店）」のボタンは、2026-10-30 に外した（ユーザーの指示） */
 (function () {
   'use strict';
   var D = window.D, esc = D.esc, st = D.st, ST = D.ST, $ = D.$;
@@ -25,8 +25,7 @@
     var today = st.today, now = D.nowMin(), rows = D.rowsOn(today), pk = D.picking();
     var tables = D.shownTables();
     $('floor-tools').innerHTML = '<b>' + esc(D.ymdJp(today)) + '</b><span class="muted">今日の席の様子</span>'
-      + '<span class="legend"><i class="lg free"></i>空き<i class="lg s-in"></i>着席中<i class="lg soon"></i>残りわずか<i class="lg over"></i>確保時間を過ぎた</span>'
-      + '<button type="button" class="btn floor-tmp" data-f="tmp">臨時（席なしで直接来店）</button>';
+      + '<span class="legend"><i class="lg free"></i>空き<i class="lg s-in"></i>着席中<i class="lg soon"></i>残りわずか<i class="lg over"></i>確保時間を過ぎた</span>';
     var maxX = 0, maxY = 0;
     tables.forEach(function (t) { maxX = Math.max(maxX, t.x + t.w); maxY = Math.max(maxY, t.y + t.h); });
     var cw = maxX + 40, ch = maxY + 60;
@@ -99,7 +98,6 @@
     var fb = e.target.closest('[data-f]');
     if (fb) {
       var now = D.nowMin();
-      if (fb.dataset.f === 'tmp') return D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(now - now % 5), tables: [], label: '臨時（席なし）' });
       if (fb.dataset.f === 'walk' || fb.dataset.f === 'book') {
         var t0 = D.table(side.sel);
         return D.numpad({ x: e.clientX, y: e.clientY, date: st.today, start: D.hm(D.nextStep(now)), tables: [side.sel], label: t0.name + '（' + t0.cap + '名）' });
