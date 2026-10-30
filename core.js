@@ -10,6 +10,7 @@
   var D = window.D = { A: A, esc: A.esc, views: {} };
   var esc = A.esc;
   var $ = D.$ = function (id) { return document.getElementById(id); };
+  // ★pin のキーは、バグるOrder受付も読み書きする（同じ t3dining.github.io なので、どちらかで1回入れれば両方で使える）。名前を変えるときは Order受付にも知らせる
   var KEY = D.KEY = { pin: 'baguru.daicho.pin', seen: 'baguru.daicho.seen', sound: 'baguru.daicho.sound', view: 'baguru.daicho.view' };
   var POLL_MS = 15000;
 
