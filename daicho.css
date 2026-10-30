@@ -52,6 +52,7 @@ p{margin:0}
 .login-box label{display:block; font-weight:700; margin-bottom:6px; text-align:left}
 .login-box input{width:100%; font-size:18px; padding:12px 14px; border:1px solid var(--line2); border-radius:var(--r); margin-bottom:14px; background:#fff}
 .login-box .btn{width:100%}
+#login-home{margin-top:14px}
 .login-box .note{font-size:12.5px; margin-top:14px; color:var(--muted)}
 
 /* 全体のつくり：左のメニュー＋右の画面 */
@@ -76,7 +77,9 @@ p{margin:0}
 .top-date{display:flex; align-items:center; gap:6px}
 .tbtn{display:inline-flex; align-items:center; gap:6px; min-height:42px; min-width:42px; padding:6px 12px; border:1px solid var(--line-d); background:var(--coal3); color:#fff; border-radius:var(--r); font-weight:700; font-size:18px; justify-content:center}
 .tbtn.today{font-size:14px}
-.tbtn.add{background:var(--ember); border-color:var(--ember); font-size:15px}
+.tbtn.add{background:var(--ember); border-color:var(--ember); font-size:15px; white-space:nowrap}
+.tbtn.home{font-size:15px; white-space:nowrap}   /* バグる Owner から開いたときだけ出る */
+@media (max-width:1199px){ .tbtn.home span{display:none} }   /* タブレットでは 🏠 だけ（予約登録が2行にならないように） */
 .tbtn.reload{background:#fff; border-color:#fff; color:var(--coal); font-size:15px; white-space:nowrap}   /* 更新：黒い帯の中で目立つように白 */
 
 .dpick{position:relative; display:inline-flex; align-items:center; min-height:42px; padding:0 14px; border-radius:var(--r); background:#fff; color:var(--text); font-weight:900; font-size:18px; font-family:var(--en); letter-spacing:.02em; cursor:pointer}
@@ -513,6 +516,7 @@ dl.conf dd{margin:0; font-weight:700}
   .top-date{order:3; flex:1 1 100%; justify-content:center}
   .dpick{font-size:16px; padding:0 10px}
   .tbtn.add span{display:none}
+  .tbtn.home span{display:none}
   .view{padding:10px}
   .panel{width:100%}
   .sheet{padding:0}
