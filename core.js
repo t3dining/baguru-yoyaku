@@ -128,6 +128,7 @@
       Object.keys(st.rows).forEach(function (id) { var x = st.rows[id]; if (x.date >= r.from && x.date <= r.to) delete st.rows[id]; });
       r.rows.forEach(function (x) { st.rows[x.id] = x; });
       st.pending = r.pending; st.web = r.web; st.tables = r.tables; st.conf = r.conf;
+      st.orders = r.orders || [];   // テイクアウトの注文（takeout.js）
       Object.keys(r.days).forEach(function (k) { st.days[k] = r.days[k]; });
       st.loadedAt = r.now;
       st.loadedRange = { from: r.from, to: r.to };
@@ -136,6 +137,7 @@
       syncText('最終更新 ' + D.clock(r.now), false);
       D.refresh();
       checkNew();
+      if (D.checkOrders) D.checkOrders();
       if (firstTime) D.show(st.view);
     }).catch(function (e) {
       if (e.code === 'bad_pin' || e.code === 'locked') { D.logout(D.errText(e)); return; }
@@ -235,7 +237,7 @@
   };
 
   /* ---------- 画面の切りかえ ---------- */
-  var TITLES = { schedule: 'スケジュール', floor: 'テーブル管理', list: '予約リスト', requests: '予約受付', customers: '顧客台帳', settings: '設定', more: 'その他' };
+  var TITLES = { schedule: 'スケジュール', floor: 'テーブル管理', list: '予約リスト', requests: '予約受付', takeout: 'テイクアウト', customers: '顧客台帳', settings: '設定', more: 'その他' };
   D.show = function (view) {
     if (!D.views[view]) view = 'schedule';
     if (view !== 'more') { st.view = view; set(KEY.view, view); }

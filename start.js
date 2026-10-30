@@ -7,6 +7,7 @@
   D.views.more = {
     render: function () {
       $('v-more').innerHTML = '<div class="more">'
+        + '<button type="button" class="more-i" data-go="takeout"><svg class="i"><use href="#i-bag"/></svg>テイクアウト<em class="badge" id="badge-to2"' + (D.st.orders.some(function (o) { return o.status === 'new' || o.status === 'request'; }) ? '' : ' hidden') + '>' + D.st.orders.filter(function (o) { return o.status === 'new' || o.status === 'request'; }).length + '</em></button>'
         + '<button type="button" class="more-i" data-go="customers"><svg class="i"><use href="#i-user"/></svg>顧客台帳</button>'
         + '<button type="button" class="more-i" data-go="settings"><svg class="i"><use href="#i-gear"/></svg>設定</button>'
         + '<button type="button" class="more-i" data-go="sound"><svg class="i"><use href="#i-bell"/></svg>' + (st.sound ? '音 オン（押すと消す）' : '音 オフ（押すと鳴らす）') + '</button>'

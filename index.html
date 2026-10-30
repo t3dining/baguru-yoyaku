@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
-<link rel="stylesheet" href="daicho.css?v=79ba95f5">
+<link rel="stylesheet" href="daicho.css?v=1c092abc">
 </head>
 <body>
 
@@ -40,6 +40,7 @@
     <div class="side-logo"><img src="logo.png" width="36" height="34" alt=""><b>予約ボード</b></div>
     <button type="button" class="nav" data-view="requests"><svg class="i"><use href="#i-inbox"/></svg><span>予約受付</span><em class="badge" id="badge-req" hidden></em></button>
     <button type="button" class="nav" data-view="floor"><svg class="i"><use href="#i-table"/></svg><span>テーブル管理</span></button>
+    <button type="button" class="nav" data-view="takeout"><svg class="i"><use href="#i-bag"/></svg><span>テイクアウト</span><em class="badge" id="badge-to" hidden></em></button>
     <button type="button" class="nav" data-view="schedule"><svg class="i"><use href="#i-sched"/></svg><span>スケジュール</span></button>
     <button type="button" class="nav" data-view="list"><svg class="i"><use href="#i-list"/></svg><span>予約リスト</span></button>
     <button type="button" class="nav" data-view="customers"><svg class="i"><use href="#i-user"/></svg><span>顧客台帳</span></button>
@@ -68,12 +69,14 @@
     </header>
     <div class="newbar" id="newbar" role="alert" hidden><span id="newbar-text"></span><button type="button" id="newbar-go">見る</button></div>
     <div class="pickbar" id="pickbar" role="status" hidden></div>
+    <div class="newbar orderbar" id="orderbar" role="alert" hidden><span id="orderbar-text"></span><button type="button" id="orderbar-go">見る</button></div>
 
     <!-- 画面 -->
     <section class="view" id="v-schedule" data-view="schedule"></section>
     <section class="view" id="v-floor" data-view="floor" hidden></section>
     <section class="view" id="v-list" data-view="list" hidden></section>
     <section class="view" id="v-requests" data-view="requests" hidden></section>
+    <section class="view" id="v-takeout" data-view="takeout" hidden></section>
     <section class="view" id="v-customers" data-view="customers" hidden></section>
     <section class="view" id="v-settings" data-view="settings" hidden></section>
   </div>
@@ -115,19 +118,21 @@
   <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 3h4l2 5-3 2a12 12 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/></symbol>
 </svg>
 
 <script src="config.js?v=ae4605a4" defer></script>
 <script src="api.js?v=a467c71d" defer></script>
-<script src="core.js?v=b7991c17" defer></script>
+<script src="core.js?v=22ba93ed" defer></script>
 <script src="detail.js?v=7773a908" defer></script>
 <script src="register.js?v=58bd4ae9" defer></script>
 <script src="schedule.js?v=c7b94c37" defer></script>
 <script src="floor.js?v=f2c7d9d4" defer></script>
 <script src="lists.js?v=1535d419" defer></script>
 <script src="settings.js?v=ee2f89ff" defer></script>
-<script src="start.js?v=adeaf838" defer></script>
+<script src="takeout.js?v=bb31b130" defer></script>
+<script src="start.js?v=e14c48af" defer></script>
 </body>
 </html>

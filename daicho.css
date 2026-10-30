@@ -162,6 +162,53 @@ p{margin:0}
 .np-more input{width:80px; padding:8px; border:1px solid var(--line2); border-radius:var(--r)}
 .np-seat{display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-height:42px; margin:0 0 10px; border:1px dashed var(--line2); background:#faf7f2; border-radius:var(--r); font-weight:700; font-size:14px; color:var(--coal)}
 .pop-acts{display:flex; gap:8px}
+/* テイクアウト（takeout.js） */
+.orderbar{background:#1f6f5c}
+.to-tools{display:flex; align-items:center; flex-wrap:wrap; gap:10px 16px; margin-bottom:12px}
+.to-tools .btn{margin-left:auto; text-decoration:none}
+.to-state{display:inline-flex; align-items:center; gap:8px; min-height:36px; padding:4px 14px; border-radius:18px; background:#efe9e2; color:#4a413a; font-weight:900; font-size:14px}
+.to-state i{width:10px; height:10px; border-radius:50%; background:#9a8f85; flex:none}
+.to-state.on{background:#e3f1ea; color:#1f6f5c} .to-state.on i{background:var(--ok)}
+.to-state.off{background:#fbe4de; color:var(--ember2)} .to-state.off i{background:var(--ember)}
+.to-only{font-size:13px; color:var(--muted)}
+.to-only b{color:var(--text)}
+.to-cols{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start}
+.to-col{background:var(--paper); border:1px solid var(--line); border-radius:var(--r); padding:10px}
+.to-col h3{display:flex; align-items:center; gap:8px; font-size:15px; font-weight:900; margin:0 0 8px}
+.to-col h3 em{font-style:normal; min-width:24px; height:24px; padding:0 7px; border-radius:12px; background:var(--coal); color:#fff; font-size:13px; display:grid; place-items:center}
+.to-col.c-new h3 em{background:var(--ember)} .to-col.c-cook h3 em{background:var(--warn)} .to-col.c-ready h3 em{background:var(--ok)}
+.to-col .empty{padding:14px}
+.to-req,.to-more{margin-top:12px}
+.to-req .to-col{border-color:#9db7d9; background:#f1f6fc}
+.to-col.wide{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px}
+.to-col.wide h3,.to-col.wide .empty{grid-column:1/-1}
+.to-more{display:grid; gap:12px}
+.to-card{background:#fff; border:1px solid var(--line2); border-radius:var(--r); padding:10px 12px; margin-bottom:10px; box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.to-col.wide .to-card{margin-bottom:0}
+.to-card.is-new{border:2px solid var(--ember); animation:pulse 1.6s ease-in-out 3}
+.to-card.s-request{border-color:#4f7fbf}
+.to-card.s-done,.to-card.s-canceled,.to-card.s-declined{opacity:.75}
+.to-head{display:flex; align-items:center; flex-wrap:wrap; gap:6px}
+.to-no{font-family:var(--en); font-size:20px; font-weight:600; margin-right:4px}
+.to-kind,.to-route,.to-st{font-size:12px; font-weight:900; padding:1px 8px; border-radius:10px; background:#efe9e2; color:#4a413a}
+.k-delivery .to-kind{background:#dfeaf7; color:#24507f} .k-bulk .to-kind{background:#f3e6d3; color:#6b4a12}
+.to-st{margin-left:auto; background:var(--coal); color:#fff}
+.s-new .to-st{background:var(--ember)} .s-request .to-st{background:#4f7fbf} .s-ready .to-st{background:var(--ok)}
+.to-when{margin:6px 0 2px; font-size:14px}
+.to-when b{font-family:var(--en); font-size:18px}
+.to-when .late{font-style:normal; color:var(--red); font-weight:900}
+.to-who{display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; font-size:15px}
+.to-addr{font-size:13px; color:#4a413a}
+.to-lines{list-style:none; margin:6px 0; padding:6px 0; border-top:1px dashed var(--line2); border-bottom:1px dashed var(--line2)}
+.to-lines li{display:flex; align-items:flex-start; gap:8px; padding:3px 0; font-size:14px}
+.to-lines li span{flex:1}
+.to-lines li small{display:block; color:var(--muted); font-size:12px}
+.to-lines li i{font-style:normal; font-family:var(--en)}
+.to-sum{display:flex; justify-content:space-between; align-items:baseline; font-size:13px; color:var(--muted)}
+.to-sum b{font-family:var(--en); font-size:18px; color:var(--text)}
+.to-note{margin-top:6px; font-size:13px; background:#fff8e6; padding:4px 8px; border-radius:4px}
+.to-note b{margin-right:6px}
+.to-note.shop{background:#eef4fb}
 /* 席を足している途中の帯（下に出る） */
 .pickbar{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:45; display:flex; align-items:center; gap:14px; width:max-content; max-width:calc(100% - 24px); background:var(--coal); color:#fff; padding:10px 10px 10px 18px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .pk-txt{display:flex; flex-direction:column; gap:2px}
@@ -447,6 +494,9 @@ dl.conf dd{margin:0; font-weight:700}
   .bnav .nav .badge{right:calc(50% - 22px); top:4px; transform:none}
   .bnav .nav.on{box-shadow:inset 0 3px 0 var(--ember)}
   .pickbar{bottom:calc(70px + env(safe-area-inset-bottom))}
+  .to-cols{grid-template-columns:1fr}
+  .to-tools .btn{margin-left:0}
+  .to-col.wide{grid-template-columns:1fr}
   .picking .toast{bottom:calc(160px + env(safe-area-inset-bottom))}
   .top{flex-wrap:wrap; padding:6px 10px; min-height:0}
   .top-l{flex:1 1 auto}
