@@ -7,7 +7,7 @@
   'use strict';
 
   var NEED = { avail: 'days', reserve: 'no', contact: 'sent', ping: 'now', load: 'rows', save: 'row', decide: 'row', customers: 'list', customer: 'customer',
-    saveCustomer: 'customer', saveTables: 'tables', saveConf: 'conf' };
+    saveCustomer: 'customer', saveTables: 'tables', saveConf: 'conf', appContent: 'content', saveAppContent: 'v' };
 
   function wait(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
   function fail(code, data) { var e = new Error(code); e.code = code; e.data = data || {}; return e; }
