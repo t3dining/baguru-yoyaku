@@ -81,6 +81,14 @@ p{margin:0}
 
 .dpick{position:relative; display:inline-flex; align-items:center; min-height:42px; padding:0 14px; border-radius:var(--r); background:#fff; color:var(--text); font-weight:900; font-size:18px; font-family:var(--en); letter-spacing:.02em; cursor:pointer}
 .dpick input{position:absolute; inset:0; opacity:0; width:100%; cursor:pointer}
+/* 開いてすぐ、予約が届くまで（core.js の D.warmStart） */
+.loadbar{background:#3b2f27; color:#fff; padding:10px 16px; font-weight:700; font-size:14px}
+.loadbar::before{content:""; display:inline-block; width:14px; height:14px; margin-right:10px; vertical-align:-2px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.warming .view{pointer-events:none}   /* 予約が届くまでは押せない（空いているように見えても、まだ分からないため） */
+.warming .view .sch-row,.warming .view .ft{opacity:.6}
+.warming #b-add{pointer-events:none; opacity:.5}
+.warming .view .empty{visibility:hidden}   /* 「予約はありません」は、届くまで出さない */
 .newbar{display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--ember); color:#fff; padding:10px 16px; font-weight:700; animation:pulse 1.6s ease-in-out 3}
 .newbar button{flex:none; background:#fff; color:var(--ember2); border:0; border-radius:var(--r); padding:6px 16px; font-weight:900; min-height:38px}
 @keyframes pulse{50%{box-shadow:inset 0 0 0 4px rgba(255,255,255,.35)}}

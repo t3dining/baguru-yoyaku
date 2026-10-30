@@ -67,7 +67,9 @@
     $('login').hidden = true; $('app').hidden = false; $('bnav').hidden = false;
     paintSound();
     $('sync').textContent = '読み込んでいます…';
-    D.load().then(D.startPolling);
+    var p = D.load();   // 先に受け口へ頼んでから、返事を待つあいだに席の並びを出す
+    D.warmStart();
+    p.then(D.startPolling);
   }
   $('login-form').addEventListener('submit', function (e) {
     e.preventDefault();

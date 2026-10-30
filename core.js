@@ -3,6 +3,8 @@
    ・直すときは、先に画面を変えてから受け口へ送る。だめだったら元に戻して知らせる
    ・ほかの端末で先に変わっていたら（更新日時がちがう）、読み直して知らせる
    ・合言葉はこの端末の localStorage にだけ覚える。お客様の情報は端末に残さない
+   ・開いてすぐ席を出せるように、席の並び・設定・今日の営業時間（お客様の情報ではないもの）だけは覚えておき、
+     受け口の返事を待つあいだ、予約の無い形で先に出す（上に「予約を読み込んでいます」）。予約が届いたら入れかえる
    画面ごとの中身は schedule.js・floor.js・lists.js・settings.js、予約の詳細は detail.js、登録は register.js */
 (function () {
   'use strict';
@@ -11,7 +13,7 @@
   var esc = A.esc;
   var $ = D.$ = function (id) { return document.getElementById(id); };
   // ★pin のキーは、バグるOrder受付も読み書きする（同じ t3dining.github.io なので、どちらかで1回入れれば両方で使える）。名前を変えるときは Order受付にも知らせる
-  var KEY = D.KEY = { pin: 'baguru.daicho.pin', seen: 'baguru.daicho.seen', sound: 'baguru.daicho.sound', view: 'baguru.daicho.view' };
+  var KEY = D.KEY = { pin: 'baguru.daicho.pin', seen: 'baguru.daicho.seen', sound: 'baguru.daicho.sound', view: 'baguru.daicho.view', shell: 'baguru.daicho.shell' };
   var POLL_MS = 15000;
 
   var ST = D.ST = { REQ: 'リクエスト', WAIT: '来店待ち', IN: '来店済み', OUT: '退店', NO: 'お断り', CXL: 'キャンセル', NOSHOW: '無断キャンセル' };
@@ -135,17 +137,51 @@
       st.loadedRange = { from: r.from, to: r.to };
       st.version = r.version;
       if (!st.seen) { st.seen = Date.now(); set(KEY.seen, String(st.seen)); }
+      saveShell(r);
+      var wasWarm = endWarm();
       syncText('最終更新 ' + D.clock(r.now), false);
       D.refresh();
       checkNew();
       if (D.checkOrders) D.checkOrders();
       if (firstTime) D.show(st.view);
+      // 先に出していたあいだに、ほかの日にち・予約リストへ移っていたら、その分も読む
+      if (wasWarm) { var rg2 = D.range(); if (rg2.from < r.from || rg2.to > r.to) D.load(); }
     }).catch(function (e) {
       if (e.code === 'bad_pin' || e.code === 'locked') { D.logout(D.errText(e)); return; }
       syncText(D.errText(e), true);
+      if (st.warm) $('loadbar').textContent = '予約を読み込めませんでした（' + D.errText(e) + '）。少しすると読み直します';
     }).then(function () { st.loading = null; });
     return st.loading;
   };
+
+  /* ---------- 開いてすぐ、前に読んだ席の並びで画面を出す ---------- */
+  function saveShell(r) {
+    var days = {};
+    if (r.days[r.today]) days[r.today] = r.days[r.today];
+    set(KEY.shell, JSON.stringify({ today: r.today, tables: r.tables, conf: r.conf, days: days }));
+  }
+  /** 覚えている席の並びで、予約の無い画面を先に出す。出せたら true（初めての端末や、ログアウトのあとは出せない） */
+  D.warmStart = function () {
+    var s = null;
+    try { s = JSON.parse(get(KEY.shell) || 'null'); } catch (e) { s = null; }
+    if (!s || !Array.isArray(s.tables) || !s.tables.length || !s.conf) return false;
+    var t = D.ymdOf(Date.now());   // 覚えたのが前の日でも、席の並びは同じ。営業時間は、その日の分があるときだけ
+    st.today = t; st.date = t; st.tables = s.tables; st.conf = s.conf; st.orders = [];
+    if (s.today === t && s.days) Object.keys(s.days).forEach(function (k) { st.days[k] = s.days[k]; });
+    st.warm = true;
+    document.body.classList.add('warming');
+    $('loadbar').textContent = '予約を読み込んでいます…';
+    $('loadbar').hidden = false;
+    D.show(st.view);
+    return true;
+  };
+  function endWarm() {
+    if (!st.warm) return false;
+    st.warm = false;
+    document.body.classList.remove('warming');
+    $('loadbar').hidden = true;
+    return true;
+  }
 
   D.startPolling = function () {
     D.stopPolling();
@@ -251,7 +287,7 @@
     if (v.enter) v.enter();
     D.renderView(view);
     var rg = D.range();
-    if (st.today && (!st.loadedRange || rg.from < st.loadedRange.from || rg.to > st.loadedRange.to)) D.load();
+    if (st.today && !st.warm && (!st.loadedRange || rg.from < st.loadedRange.from || rg.to > st.loadedRange.to)) D.load();   // 先に出しているあいだは、読み込みの途中
   };
   D.renderView = function (view) {
     var v = D.views[view || st.view];
@@ -354,7 +390,7 @@
   /* ---------- ログイン・ログアウト ---------- */
   D.logout = function (msg) {
     D.stopPolling();
-    st.pin = null; set(KEY.pin, null);
+    st.pin = null; set(KEY.pin, null); set(KEY.shell, null); endWarm();
     st.rows = {}; st.pending = []; st.web = []; st.today = ''; st.date = '';
     $('app').hidden = true; $('bnav').hidden = true; $('login').hidden = false;
     D.closePanel(); D.closeModal();

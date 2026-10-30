@@ -13,8 +13,9 @@
 <meta name="apple-mobile-web-app-title" content="予約ボード">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
-<link rel="stylesheet" href="daicho.css?v=1c092abc">
+<!-- 字の形は、届くのを待たずに画面を出す（届いたら入れかわる） -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="daicho.css?v=410ba82e">
 </head>
 <body>
 
@@ -67,6 +68,7 @@
         <button type="button" class="tbtn add" id="b-add"><svg class="i"><use href="#i-plus"/></svg><span>予約登録</span></button>
       </div>
     </header>
+    <div class="loadbar" id="loadbar" role="status" hidden></div>
     <div class="newbar" id="newbar" role="alert" hidden><span id="newbar-text"></span><button type="button" id="newbar-go">見る</button></div>
     <div class="pickbar" id="pickbar" role="status" hidden></div>
     <div class="newbar orderbar" id="orderbar" role="alert" hidden><span id="orderbar-text"></span><button type="button" id="orderbar-go">見る</button></div>
@@ -125,7 +127,7 @@
 
 <script src="config.js?v=ae4605a4" defer></script>
 <script src="api.js?v=a467c71d" defer></script>
-<script src="core.js?v=e9a87862" defer></script>
+<script src="core.js?v=1cddf1ca" defer></script>
 <script src="detail.js?v=7773a908" defer></script>
 <script src="register.js?v=58bd4ae9" defer></script>
 <script src="schedule.js?v=c7b94c37" defer></script>
@@ -133,6 +135,6 @@
 <script src="lists.js?v=1535d419" defer></script>
 <script src="settings.js?v=ee2f89ff" defer></script>
 <script src="takeout.js?v=bb31b130" defer></script>
-<script src="start.js?v=e14c48af" defer></script>
+<script src="start.js?v=0a740344" defer></script>
 </body>
 </html>
