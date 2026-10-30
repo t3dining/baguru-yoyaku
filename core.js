@@ -139,6 +139,7 @@
       if (!st.seen) { st.seen = Date.now(); set(KEY.seen, String(st.seen)); }
       saveShell(r);
       var wasWarm = endWarm();
+      if (st.locked) { st.locked = false; $('loadbar').hidden = true; }
       syncText('最終更新 ' + D.clock(r.now), false);
       D.refresh();
       checkNew();
@@ -147,9 +148,11 @@
       // 先に出していたあいだに、ほかの日にち・予約リストへ移っていたら、その分も読む
       if (wasWarm) { var rg2 = D.range(); if (rg2.from < r.from || rg2.to > r.to) D.load(); }
     }).catch(function (e) {
-      if (e.code === 'bad_pin' || e.code === 'locked') { D.logout(D.errText(e)); return; }
+      if (e.code === 'bad_pin') { D.logout(D.errText(e)); return; }
+      // 受け口が止まっている（だれかが合言葉を何度も間違えた）だけなら、この端末の合言葉は消さない。止まっている間も読み直しつづけ、戻ったら元の画面になる
+      if (e.code === 'locked') { st.locked = true; $('loadbar').textContent = '受け口が止まっています（合言葉を何度も間違えた呼び出しがありました）。10分ほどで自動で戻ります。この端末の合言葉はそのままです'; $('loadbar').hidden = false; }
       syncText(D.errText(e), true);
-      if (st.warm) $('loadbar').textContent = '予約を読み込めませんでした（' + D.errText(e) + '）。少しすると読み直します';
+      if (st.warm && e.code !== 'locked') $('loadbar').textContent = '予約を読み込めませんでした（' + D.errText(e) + '）。少しすると読み直します';
     }).then(function () { st.loading = null; });
     return st.loading;
   };
