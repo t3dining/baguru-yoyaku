@@ -1,5 +1,6 @@
 /* 設定：席（名前・人数・種類・グループ・並び・配置図）と、基本（確保時間・表示する時間・キーワード）と、担当者
-   ・担当者は1人ずつ「足す」「消す」で直す。押すとすぐ受け口へ保存する（タブ「設定」の「担当者」にカンマで区切って入る）
+   ・担当者：社員は1人ずつ「足す」「消す」で直す。押すとすぐ受け口へ保存する（タブ「設定」の「担当者」にカンマで区切って入る）。
+     アルバイトは、受け口が T3Works のマネージの名簿から読む（ここでは見るだけ。名簿の順）
    ・席を直したら「席を保存する」で受け口へ。配置図の席はドラッグで動かせる
    ・ほかの受け方（ホームページの受付時間・組数・休みの日・知らせるメール）は、スプレッドシートのタブ「設定」で変える */
 (function () {
@@ -140,12 +141,17 @@
   /* ---------- 担当者（予約登録で選ぶ名前）。1人ずつ足す・消す。押すとすぐ保存 ---------- */
   function staffHtml() {
     var names = st.conf.staff || [];
-    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話・店頭など）に選ぶ名前です。1人でも入れると、予約登録で必ず選ぶようになります。</p>'
+    var pt = st.conf.parttime || [];
+    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話・店頭など）に選ぶ名前です。予約登録では、社員がいつも先に並び、そのあとにアルバイトが並びます。1人でもいると、予約登録で必ず選ぶようになります。</p>'
+      + '<h3>社員</h3>'
       + (names.length ? '<ul class="stf-list">' + names.map(function (n, i) {
         return '<li><span>' + esc(n) + '</span><button type="button" class="btn small line-ember" data-s="stf-del" data-i="' + i + '">消す</button></li>';
       }).join('') + '</ul>' : '<p class="empty">まだ入っていません。</p>')
       + '<div class="stf-add"><input type="text" id="s-stf-new" maxlength="20" placeholder="名前を入れる" autocomplete="off" enterkeyhint="done">'
-      + '<button type="button" class="btn dark" data-s="stf-add">＋ 足す</button></div><p class="err" id="stf-err" hidden></p>';
+      + '<button type="button" class="btn dark" data-s="stf-add">＋ 足す</button></div><p class="err" id="stf-err" hidden></p>'
+      + '<h3>アルバイト</h3><p class="muted">T3Works のマネージの名簿（バグる）から、名簿の順に自動で入ります（名簿を直すと、30分ほどで変わります）。ここでは直せません。</p>'
+      + (pt.length ? '<ul class="stf-list ro">' + pt.map(function (n) { return '<li><span>' + esc(n) + '</span></li>'; }).join('') + '</ul>'
+        : '<p class="empty">' + (st.conf.roster ? '名簿から読めた人がいません。' : 'まだ名簿とつないでいません。') + '</p>');
   }
   function saveStaff(names, okText) {
     var sec = $('set-staff');

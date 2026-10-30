@@ -243,15 +243,21 @@
   }
 
   /* 担当者：お店で入れる予約（電話・店頭など）で選ぶ。ネット予約（ホームページ・アプリ）と直接来店は選ばない。
-     新しく入れるときは必ず選ぶ（名前は「設定」の「担当者」。1人も入っていなければ選ばずに入れられる） */
+     新しく入れるときは必ず選ぶ（1人も入っていなければ選ばずに入れられる）。
+     並びは、社員（「設定」の「担当者」で入れた順。いつも先）→ アルバイト（受け口が T3Works のマネージの名簿から読む。名簿の順） */
   var NO_STAFF = { 'ホームページ': true, 'アプリ': true, '直接来店': true };
-  function staffNames() { var n = (st.conf.staff || []).slice(); if (f.staff && n.indexOf(f.staff) < 0) n.push(f.staff); return n; }
+  function staffGroups() {
+    var emp = st.conf.staff || [], pt = (st.conf.parttime || []).filter(function (n) { return emp.indexOf(n) < 0; });
+    return { emp: emp, pt: pt, gone: f.staff && emp.indexOf(f.staff) < 0 && pt.indexOf(f.staff) < 0 ? [f.staff] : [] };   // gone：前に選んだが、いまは一覧に無い人
+  }
   function needStaff() { return !NO_STAFF[f.route]; }
   function staffBox() {
     if (!needStaff()) return '';
-    var names = staffNames(), must = !f.id && (st.conf.staff || []).length > 0;
+    var g = staffGroups(), must = !f.id && g.emp.length + g.pt.length > 0;
+    var chips = function (list) { return list.map(function (n) { return '<button type="button" class="kchip' + (n === f.staff ? ' on' : '') + '" data-stf="' + esc(n) + '">' + esc(n) + '</button>'; }).join(''); };
     return '<p class="lbl">担当者' + (must ? '<span class="need">必須</span>' : '') + '</p>'
-      + (names.length ? '<div class="kgrid" id="r-staff">' + names.map(function (n) { return '<button type="button" class="kchip' + (n === f.staff ? ' on' : '') + '" data-stf="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>'
+      + (g.emp.length + g.pt.length + g.gone.length ? '<div class="kgrid" id="r-staff">' + chips(g.emp) + chips(g.gone)
+        + (g.pt.length ? '<span class="stf-sep">アルバイト</span>' + chips(g.pt) : '') + '</div>'
         : '<p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>');
   }
 
@@ -396,7 +402,7 @@
       case 'confirm':
         if (!f.people) { go(1); return; }
         if (!f.name && f.route !== '直接来店') return showErr('お名前を入れてください。');
-        if (!f.id && needStaff() && (st.conf.staff || []).length && !f.staff) return showErr('担当者を選んでください。');
+        if (!f.id && needStaff() && (st.conf.staff || []).length + (st.conf.parttime || []).length && !f.staff) return showErr('担当者を選んでください。');
         if (f.tel && !/^0\d{9,10}$/.test(f.tel.replace(/[^\d]/g, ''))) return showErr('電話番号の形が違います（例：090-1234-5678）。');
         if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) return showErr('メールアドレスの形が違います。');
         return go(4);
