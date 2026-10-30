@@ -26,7 +26,7 @@
       + (c.anniv ? '<span>記念日：' + esc(c.anniv) + '</span>' : '') + '</p>' : '';
     var elapsed = r.status === ST.IN && r.inAt ? '<span class="dt-elapsed">着席 ' + Math.max(0, Math.round((Date.now() - r.inAt) / 60000)) + '分</span>' : '';
     return '<div class="dt" data-id="' + esc(r.id) + '">'
-      + '<div class="dt-head">' + D.statusBadge(r.status) + '<span class="dt-route">' + esc(r.route || '') + '</span>' + elapsed
+      + '<div class="dt-head">' + D.statusBadge(r.status) + '<span class="dt-route">' + esc((r.route || '') + (r.staff ? '・担当 ' + r.staff : '')) + '</span>' + elapsed
       + (inline ? '' : '<button type="button" class="x" data-act="close" aria-label="閉じる"><svg class="i"><use href="#i-x"/></svg></button>') + '</div>'
       + '<p class="dt-when">' + esc(D.jp(r.date)) + '　<b>' + esc(r.start) + '</b>〜' + esc(D.hm(sp[1])) + '</p>'
       + '<p class="dt-big"><b>' + r.people + '</b>名<span class="dt-tables">' + (r.tables.length ? esc(D.tableNames(r.tables)) : '<em>席が未割り当て</em>') + '</span></p>'

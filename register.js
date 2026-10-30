@@ -167,11 +167,11 @@
     f = r ? {
       id: r.id, expect: r.updatedAt, date: r.date, start: r.start, people: r.people, keep: r.keep, tables: r.tables.slice(),
       name: r.name, kana: r.kana, tel: r.tel, email: r.email, route: r.route, keywords: r.keywords.slice(), memo: r.memo,
-      dessert: r.dessert === true, plateMsg: r.plateMsg || '', status: r.status, cid: r.cid, cust: r.cust, no: r.no
+      dessert: r.dessert === true, plateMsg: r.plateMsg || '', status: r.status, cid: r.cid, cust: r.cust, no: r.no, staff: r.staff || ''
     } : {
       date: o.date || st.date || st.today, start: o.start || (o.date && o.date !== st.today ? '18:00' : nextQ), people: o.people || 0,
       keep: st.conf.keep || 90, tables: o.tables || [], name: '', kana: '', tel: '', email: '', route: '電話', keywords: [], memo: '',
-      dessert: false, plateMsg: '', status: ST.WAIT, cid: '', cust: null
+      dessert: false, plateMsg: '', status: ST.WAIT, cid: '', cust: null, staff: ''
     };
     rid = D.A.rid(); found = [];
     sheet.hidden = false;
@@ -242,6 +242,19 @@
       onChange: function (sel) { f.tables = sel; var s = sheet.querySelector('.sh-sum'); if (s) s.innerHTML = summary(); } });
   }
 
+  /* 担当者：お店で入れる予約（電話・店頭など）で選ぶ。ネット予約（ホームページ・アプリ）と直接来店は選ばない。
+     新しく入れるときは必ず選ぶ（名前は「設定」の「基本」の「担当者」。1人も入っていなければ選ばずに入れられる） */
+  var NO_STAFF = { 'ホームページ': true, 'アプリ': true, '直接来店': true };
+  function staffNames() { var n = (st.conf.staff || []).slice(); if (f.staff && n.indexOf(f.staff) < 0) n.push(f.staff); return n; }
+  function needStaff() { return !NO_STAFF[f.route]; }
+  function staffBox() {
+    if (!needStaff()) return '';
+    var names = staffNames(), must = !f.id && (st.conf.staff || []).length > 0;
+    return '<p class="lbl">担当者' + (must ? '<span class="need">必須</span>' : '') + '</p>'
+      + (names.length ? '<div class="kgrid" id="r-staff">' + names.map(function (n) { return '<button type="button" class="kchip' + (n === f.staff ? ' on' : '') + '" data-stf="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>'
+        : '<p class="muted">担当者の名前は、「設定」の「基本」で入れられます。</p>');
+  }
+
   /* 3. お客様 */
   function step3() {
     var kws = (st.conf.keywords || []).map(function (k) { return '<button type="button" class="kchip' + (f.keywords.indexOf(k) >= 0 ? ' on' : '') + '" data-kw="' + esc(k) + '">' + esc(k) + '</button>'; }).join('');
@@ -258,6 +271,7 @@
       + '<div class="dessert"><label class="chk"><input type="checkbox" id="r-dessert"' + (f.dessert ? ' checked' : '') + '>デザートプレート<small>要予約・税込1,100円</small></label>'
       + (f.dessert ? '<label for="r-plate">プレートに書くメッセージ<small>30文字まで</small></label><input type="text" id="r-plate" maxlength="30" value="' + esc(f.plateMsg) + '" placeholder="例：Happy Birthday たろう" autocomplete="off">' : '') + '</div>'
       + '<div class="fg"><div><label for="r-route">予約経路</label><select id="r-route">' + routes.map(function (x) { return '<option' + (x === f.route ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>'
+      + '<div class="full" id="r-staffbox">' + staffBox() + '</div>'
       + '<div><label for="r-status">状態</label><select id="r-status">' + stats.map(function (x) { return '<option' + (x === f.status ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>'
       + '<div class="full"><label for="r-memo">メモ</label><textarea id="r-memo" maxlength="1000" placeholder="例：窓際の席を希望・ケーキの持ち込み">' + esc(f.memo) + '</textarea></div></div>'
       + '<p class="err" id="r-err" hidden></p>',
@@ -321,7 +335,7 @@
       + row('人数', f.people + '名') + row('テーブル', f.tables.length ? esc(D.tableNames(f.tables)) : '未割り当て')
       + row('お名前', esc(f.name || '（なし）') + (f.kana ? '（' + esc(f.kana) + '）' : '')) + row('電話番号', esc(f.tel)) + row('メール', esc(f.email))
       + row('キーワード', esc(f.keywords.join('・')))
-      + row('デザートプレート', f.dessert ? '注文あり（税込1,100円）' + (f.plateMsg ? '<br>メッセージ「' + esc(f.plateMsg) + '」' : '<br>メッセージなし') : '') + row('予約経路', esc(f.route)) + row('状態', esc(f.status)) + row('メモ', esc(f.memo)) + '</dl>'
+      + row('デザートプレート', f.dessert ? '注文あり（税込1,100円）' + (f.plateMsg ? '<br>メッセージ「' + esc(f.plateMsg) + '」' : '<br>メッセージなし') : '') + row('予約経路', esc(f.route)) + row('担当者', needStaff() ? esc(f.staff) : '') + row('状態', esc(f.status)) + row('メモ', esc(f.memo)) + '</dl>'
       + '<p class="err" id="r-err" hidden></p>',
       '<button type="button" class="btn" data-r="to3">戻って直す</button><button type="button" class="btn ember big" data-r="save">' + (f.id ? 'この内容で変更する' : 'この内容で登録する') + '</button>');
   }
@@ -330,7 +344,7 @@
   function save(btn) {
     btn.disabled = true; btn.textContent = '送っています…';
     var data = { date: f.date, start: f.start, keep: f.keep, people: f.people, tables: f.tables, name: f.name, kana: f.kana, tel: f.tel,
-      email: f.email, route: f.route, keywords: f.keywords, memo: f.memo, dessert: f.dessert, plateMsg: f.dessert ? f.plateMsg : '', status: f.status, cid: f.cid };
+      email: f.email, route: f.route, keywords: f.keywords, memo: f.memo, dessert: f.dessert, plateMsg: f.dessert ? f.plateMsg : '', status: f.status, cid: f.cid, staff: needStaff() ? f.staff : '' };
     var p = f.id
       ? D.post({ action: 'save', row: Object.assign({ id: f.id }, data), expect: f.expect })
       : D.post({ action: 'save', row: data, rid: rid });
@@ -352,7 +366,7 @@
   sheet.addEventListener('click', function (e) {
     if (!f) return;
     var t = e.target;
-    var b = t.closest('[data-r],[data-step],[data-d],[data-tm],[data-pp],[data-adj],[data-keep],[data-kw],[data-pick]');
+    var b = t.closest('[data-r],[data-step],[data-d],[data-tm],[data-pp],[data-adj],[data-keep],[data-kw],[data-stf],[data-pick]');
     if (!b) return;
     readStep3();
     var ds = b.dataset;
@@ -363,6 +377,7 @@
     if (ds.adj) { f.start = D.hm(Math.max(0, D.toMin(f.start) + Number(ds.adj))); return draw(); }
     if (ds.keep) { f.keep = Math.max(30, Math.min(1410, f.keep + Number(ds.keep))); var sc = $('sh-body').scrollTop; step2(); $('sh-body').scrollTop = sc; return; }
     if (ds.kw) { var i = f.keywords.indexOf(ds.kw); if (i >= 0) f.keywords.splice(i, 1); else f.keywords.push(ds.kw); b.classList.toggle('on'); return; }
+    if (ds.stf) { f.staff = f.staff === ds.stf ? '' : ds.stf; $('r-staffbox').innerHTML = staffBox(); return; }   // 1人だけ選ぶ（もう一度押すと外す）
     if (ds.pick) {
       var c = found[Number(ds.pick)];
       f.cid = c.cid; f.cust = c; found = [];
@@ -381,6 +396,7 @@
       case 'confirm':
         if (!f.people) { go(1); return; }
         if (!f.name && f.route !== '直接来店') return showErr('お名前を入れてください。');
+        if (!f.id && needStaff() && (st.conf.staff || []).length && !f.staff) return showErr('担当者を選んでください。');
         if (f.tel && !/^0\d{9,10}$/.test(f.tel.replace(/[^\d]/g, ''))) return showErr('電話番号の形が違います（例：090-1234-5678）。');
         if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) return showErr('メールアドレスの形が違います。');
         return go(4);

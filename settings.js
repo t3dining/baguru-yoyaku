@@ -48,7 +48,8 @@
       + '<section class="set-sec"><h2>基本</h2><div class="fg">'
       + '<div><label for="s-keep">確保時間（分）</label><input type="number" id="s-keep" min="15" max="600" step="5" value="' + (c.keep || 90) + '"><small>1組の予約で席を押さえる長さ。ホームページのリクエストもこの長さ</small></div>'
       + '<div><label for="s-from">スケジュールに出す時間</label><span class="inl"><input type="time" id="s-from" step="900" value="' + esc(c.viewFrom || '10:00') + '">〜<input type="time" id="s-to" step="900" value="' + esc(c.viewTo || '23:30') + '"></span></div>'
-      + '<div class="full"><label for="s-kw">キーワード（カンマで区切る）</label><input type="text" id="s-kw" value="' + esc((c.keywords || []).join(', ')) + '"></div></div>'
+      + '<div class="full"><label for="s-kw">キーワード（カンマで区切る）</label><input type="text" id="s-kw" value="' + esc((c.keywords || []).join(', ')) + '"></div>'
+      + '<div class="full"><label for="s-staff">担当者（カンマで区切る）</label><input type="text" id="s-staff" value="' + esc((c.staff || []).join(', ')) + '" placeholder="例：山田, 佐藤"><small>お店で予約を入れるとき（電話・店頭など）に選ぶ名前。入れておくと、予約登録で必ず選ぶようになります</small></div></div>'
       + '<p class="err" id="conf-err" hidden></p><div class="set-acts"><button type="button" class="btn ember" data-s="conf">基本を保存する</button></div></section>'
       + '<section class="set-sec"><h2>その他の受け方</h2><p class="muted">次の項目は、会社の Google ドライブのスプレッドシート「※勝手にさわらない＿バグる ネット予約」のタブ「設定」で変えます（変えるとすぐ効きます）。</p>'
       + '<ul class="set-list"><li>ネット予約を受け付ける（する／しない）</li><li>ネット予約（ホームページ・アプリ）で受ける時刻（平日・土日祝）と、その間隔</li><li>ネット予約の1枠で受ける組数・1組の最大人数</li><li>何日先まで・何時間前まで</li><li>営業時間（スケジュールで灰色にする時間）</li><li>新しいリクエストを知らせるメール</li><li>予約経路の選び方</li></ul>'
@@ -119,7 +120,7 @@
     }).catch(function (e) { b.disabled = false; b.textContent = '席を保存する'; err('set-err', '保存できませんでした：' + D.errText(e)); });
   }
   function saveConf(b) {
-    var p = { keep: Number($('s-keep').value), viewFrom: $('s-from').value, viewTo: $('s-to').value, keywords: $('s-kw').value };
+    var p = { keep: Number($('s-keep').value), viewFrom: $('s-from').value, viewTo: $('s-to').value, keywords: $('s-kw').value, staff: $('s-staff').value };
     if (!(p.keep >= 15)) return err('conf-err', '確保時間は15分より長くしてください。');
     if (!p.viewFrom || !p.viewTo || p.viewFrom >= p.viewTo) return err('conf-err', 'スケジュールに出す時間を確かめてください。');
     b.disabled = true; b.textContent = '保存しています…';

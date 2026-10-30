@@ -5,7 +5,7 @@
 
   function rowLine(r, withDate) {
     return '<button type="button" class="lr" data-id="' + esc(r.id) + '">'
-      + '<span class="lr-st">' + D.statusBadge(r.status) + '<small>' + esc(r.route || '') + '</small></span>'
+      + '<span class="lr-st">' + D.statusBadge(r.status) + '<small>' + esc((r.route || '') + (r.staff ? '・' + r.staff : '')) + '</small></span>'
       + '<span class="lr-time">' + (withDate ? '<small>' + esc(D.md(r.date) + '（' + D.wd(r.date) + '）') + '</small>' : '') + '<b>' + esc(r.start) + '</b>〜' + esc(D.hm(D.span(r)[1])) + '</span>'
       + '<span class="lr-who"><b>' + esc(D.name(r)) + (r.name ? ' 様' : '') + '</b>　' + r.people + '名 ' + D.icons(r) + '<small>' + esc(r.tel || '') + '</small></span>'
       + '<span class="lr-tb">' + esc(r.tables.length ? D.tableNames(r.tables) : '未割り当て') + '</span></button>';
