@@ -243,7 +243,7 @@
   }
 
   /* 担当者：お店で入れる予約（電話・店頭など）で選ぶ。ネット予約（ホームページ・アプリ）と直接来店は選ばない。
-     新しく入れるときは必ず選ぶ（名前は「設定」の「基本」の「担当者」。1人も入っていなければ選ばずに入れられる） */
+     新しく入れるときは必ず選ぶ（名前は「設定」の「担当者」。1人も入っていなければ選ばずに入れられる） */
   var NO_STAFF = { 'ホームページ': true, 'アプリ': true, '直接来店': true };
   function staffNames() { var n = (st.conf.staff || []).slice(); if (f.staff && n.indexOf(f.staff) < 0) n.push(f.staff); return n; }
   function needStaff() { return !NO_STAFF[f.route]; }
@@ -252,7 +252,7 @@
     var names = staffNames(), must = !f.id && (st.conf.staff || []).length > 0;
     return '<p class="lbl">担当者' + (must ? '<span class="need">必須</span>' : '') + '</p>'
       + (names.length ? '<div class="kgrid" id="r-staff">' + names.map(function (n) { return '<button type="button" class="kchip' + (n === f.staff ? ' on' : '') + '" data-stf="' + esc(n) + '">' + esc(n) + '</button>'; }).join('') + '</div>'
-        : '<p class="muted">担当者の名前は、「設定」の「基本」で入れられます。</p>');
+        : '<p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>');
   }
 
   /* 3. お客様 */

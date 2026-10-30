@@ -478,6 +478,12 @@ dl.conf dd{margin:0; font-weight:700}
 .set-acts{display:flex; justify-content:flex-end; gap:8px; margin-top:12px; flex-wrap:wrap}
 .set-acts.left{justify-content:flex-start}
 .set-list{margin:0; padding-left:1.2em; font-size:14px; line-height:1.9}
+/* 担当者（settings.js） */
+.stf-list{list-style:none; margin:0 0 10px; padding:0; display:flex; flex-wrap:wrap; gap:8px}
+.stf-list li{display:flex; align-items:center; gap:10px; padding:4px 4px 4px 14px; border:1px solid var(--line2); border-radius:var(--r); background:#faf7f2; font-weight:700; font-size:16px}
+.stf-add{display:flex; gap:8px; max-width:420px}
+.stf-add input{flex:1; min-width:0; font-size:16px; padding:10px 12px; border:1px solid var(--line2); border-radius:var(--r); background:#fff}
+#set-staff .empty{padding:6px 0 12px}
 .bnav{display:none}
 
 /* ---------- 画面の大きさごと ---------- */

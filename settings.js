@@ -1,4 +1,5 @@
-/* 設定：席（名前・人数・種類・グループ・並び・配置図）と、基本（確保時間・表示する時間・キーワード）
+/* 設定：席（名前・人数・種類・グループ・並び・配置図）と、基本（確保時間・表示する時間・キーワード）と、担当者
+   ・担当者は1人ずつ「足す」「消す」で直す。押すとすぐ受け口へ保存する（タブ「設定」の「担当者」にカンマで区切って入る）
    ・席を直したら「席を保存する」で受け口へ。配置図の席はドラッグで動かせる
    ・ほかの受け方（ホームページの受付時間・組数・休みの日・知らせるメール）は、スプレッドシートのタブ「設定」で変える */
 (function () {
@@ -49,8 +50,9 @@
       + '<div><label for="s-keep">確保時間（分）</label><input type="number" id="s-keep" min="15" max="600" step="5" value="' + (c.keep || 90) + '"><small>1組の予約で席を押さえる長さ。ホームページのリクエストもこの長さ</small></div>'
       + '<div><label for="s-from">スケジュールに出す時間</label><span class="inl"><input type="time" id="s-from" step="900" value="' + esc(c.viewFrom || '10:00') + '">〜<input type="time" id="s-to" step="900" value="' + esc(c.viewTo || '23:30') + '"></span></div>'
       + '<div class="full"><label for="s-kw">キーワード（カンマで区切る）</label><input type="text" id="s-kw" value="' + esc((c.keywords || []).join(', ')) + '"></div>'
-      + '<div class="full"><label for="s-staff">担当者（カンマで区切る）</label><input type="text" id="s-staff" value="' + esc((c.staff || []).join(', ')) + '" placeholder="例：山田, 佐藤"><small>お店で予約を入れるとき（電話・店頭など）に選ぶ名前。入れておくと、予約登録で必ず選ぶようになります</small></div></div>'
+      + '</div>'
       + '<p class="err" id="conf-err" hidden></p><div class="set-acts"><button type="button" class="btn ember" data-s="conf">基本を保存する</button></div></section>'
+      + '<section class="set-sec" id="set-staff">' + staffHtml() + '</section>'
       + '<section class="set-sec"><h2>その他の受け方</h2><p class="muted">次の項目は、会社の Google ドライブのスプレッドシート「※勝手にさわらない＿バグる ネット予約」のタブ「設定」で変えます（変えるとすぐ効きます）。</p>'
       + '<ul class="set-list"><li>ネット予約を受け付ける（する／しない）</li><li>ネット予約（ホームページ・アプリ）で受ける時刻（平日・土日祝）と、その間隔</li><li>ネット予約の1枠で受ける組数・1組の最大人数</li><li>何日先まで・何時間前まで</li><li>営業時間（スケジュールで灰色にする時間）</li><li>新しいリクエストを知らせるメール</li><li>予約経路の選び方</li></ul>'
         + '<p class="muted">★定休日と、臨時の営業・お休みは、T3Works のマネージ（⚙ 設定 → 定休日）で変えます。30分ほどで、予約ボード・ホームページ・お客さまのアプリに入ります。</p></section>'
@@ -93,6 +95,11 @@
       case 'reset': init(); return render();
       case 'save': return saveTables(b);
       case 'conf': return saveConf(b);
+      case 'stf-add': return addStaff();
+      case 'stf-del':
+        var names = (st.conf.staff || []).slice(), who = names[Number(b.dataset.i)];
+        return D.ask({ title: who + ' を担当者から外します', text: 'これまでの予約に入っている担当者の名前は、そのまま残ります。', ok: '外す', danger: true })
+          .then(function (y) { if (y) { names.splice(Number(b.dataset.i), 1); saveStaff(names, who + ' を外しました'); } });
       case 'sound': D.$('b-sound').click(); return render();
       case 'logout': return D.$('b-logout').click();
     }
@@ -120,7 +127,7 @@
     }).catch(function (e) { b.disabled = false; b.textContent = '席を保存する'; err('set-err', '保存できませんでした：' + D.errText(e)); });
   }
   function saveConf(b) {
-    var p = { keep: Number($('s-keep').value), viewFrom: $('s-from').value, viewTo: $('s-to').value, keywords: $('s-kw').value, staff: $('s-staff').value };
+    var p = { keep: Number($('s-keep').value), viewFrom: $('s-from').value, viewTo: $('s-to').value, keywords: $('s-kw').value };
     if (!(p.keep >= 15)) return err('conf-err', '確保時間は15分より長くしてください。');
     if (!p.viewFrom || !p.viewTo || p.viewFrom >= p.viewTo) return err('conf-err', 'スケジュールに出す時間を確かめてください。');
     b.disabled = true; b.textContent = '保存しています…';
@@ -129,6 +136,38 @@
     }).catch(function (e) { b.disabled = false; b.textContent = '基本を保存する'; err('conf-err', '保存できませんでした：' + D.errText(e)); });
   }
   function err(id, text) { var m = $(id); m.textContent = text; m.hidden = false; }
+
+  /* ---------- 担当者（予約登録で選ぶ名前）。1人ずつ足す・消す。押すとすぐ保存 ---------- */
+  function staffHtml() {
+    var names = st.conf.staff || [];
+    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話・店頭など）に選ぶ名前です。1人でも入れると、予約登録で必ず選ぶようになります。</p>'
+      + (names.length ? '<ul class="stf-list">' + names.map(function (n, i) {
+        return '<li><span>' + esc(n) + '</span><button type="button" class="btn small line-ember" data-s="stf-del" data-i="' + i + '">消す</button></li>';
+      }).join('') + '</ul>' : '<p class="empty">まだ入っていません。</p>')
+      + '<div class="stf-add"><input type="text" id="s-stf-new" maxlength="20" placeholder="名前を入れる" autocomplete="off" enterkeyhint="done">'
+      + '<button type="button" class="btn dark" data-s="stf-add">＋ 足す</button></div><p class="err" id="stf-err" hidden></p>';
+  }
+  function saveStaff(names, okText) {
+    var sec = $('set-staff');
+    sec.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
+    return D.post({ action: 'saveConf', conf: { staff: names } }).then(function (res) {
+      st.conf = res.conf; sec.innerHTML = staffHtml(); D.toast(esc(okText));
+      $('s-stf-new').focus({ preventScroll: true });
+    }).catch(function (e) {
+      sec.querySelectorAll('button').forEach(function (x) { x.disabled = false; });
+      err('stf-err', '保存できませんでした：' + D.errText(e));
+    });
+  }
+  function addStaff() {
+    var inp = $('s-stf-new'), n = inp.value.replace(/[,、]/g, ' ').trim(), names = (st.conf.staff || []).slice();
+    if (!n) return err('stf-err', '名前を入れてください。');
+    if (names.indexOf(n) >= 0) return err('stf-err', '「' + n + '」はもう入っています。');
+    names.push(n);
+    saveStaff(names, n + ' を足しました');
+  }
+  box.addEventListener('keydown', function (e) {
+    if (e.target.id === 's-stf-new' && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addStaff(); }   // 日本語の変換を決めるときの Enter では足さない
+  });
 
   /* 配置図の席をドラッグで動かす */
   box.addEventListener('pointerdown', function (e) {
