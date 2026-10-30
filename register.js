@@ -258,6 +258,7 @@
     return '<p class="lbl">担当者' + (must ? '<span class="need">必須</span>' : '') + '</p>'
       + (g.emp.length + g.pt.length + g.gone.length ? '<div class="kgrid" id="r-staff">' + chips(g.emp) + chips(g.gone)
         + (g.pt.length ? '<span class="stf-sep">アルバイト</span>' + chips(g.pt) : '') + '</div>'
+        + (st.conf.roster && st.conf.roster.err ? '<p class="muted">★アルバイトの名前を、名簿から読めていません（くわしくは「設定」→「担当者」）。</p>' : '')
         : '<p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>');
   }
 

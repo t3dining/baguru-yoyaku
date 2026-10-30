@@ -150,8 +150,19 @@
       + '<div class="stf-add"><input type="text" id="s-stf-new" maxlength="20" placeholder="名前を入れる" autocomplete="off" enterkeyhint="done">'
       + '<button type="button" class="btn dark" data-s="stf-add">＋ 足す</button></div><p class="err" id="stf-err" hidden></p>'
       + '<h3>アルバイト</h3><p class="muted">T3Works のマネージの名簿（バグる）から、名簿の順に自動で入ります（名簿を直すと、30分ほどで変わります）。ここでは直せません。</p>'
+      + rosterNote()
       + (pt.length ? '<ul class="stf-list ro">' + pt.map(function (n) { return '<li><span>' + esc(n) + '</span></li>'; }).join('') + '</ul>'
         : '<p class="empty">' + (st.conf.roster ? '名簿から読めた人がいません。' : 'まだ名簿とつないでいません。') + '</p>');
+  }
+  /** 名簿を読めていないときは、わけを目立つように出す（受け口の roster_ の err）。読めていても、いつ読んだかを出す */
+  var ROSTER_ERR = { bad_key: '鍵が合いません（受け口の鍵と、Cloudflare の STAFF_KEY が違います）', no_route: 'T3Works に名簿の口がまだありません',
+    unreachable: 'T3Works につながりません', bad_reply: 'T3Works の答えの形が違います' };
+  function rosterNote() {
+    var r = st.conf.roster, when = function (ms) { return D.md(D.ymdOf(ms)) + ' ' + D.clock(ms); };
+    if (!r) return '';
+    if (!r.err) return r.okAt ? '<p class="muted">' + esc(when(r.okAt)) + ' に名簿を読みました。</p>' : '';
+    return '<p class="stf-warn">★名簿を読めていません：' + esc(ROSTER_ERR[r.err] || '読めませんでした（' + r.err + '）') + '。社員の名前だけで予約は入れられます。'
+      + (r.okAt ? '下は、前に読めた分（' + esc(when(r.okAt)) + '）です。' : '') + '</p>';
   }
   function saveStaff(names, okText) {
     var sec = $('set-staff');
