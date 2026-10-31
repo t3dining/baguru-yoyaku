@@ -13,7 +13,7 @@
   var esc = A.esc;
   var $ = D.$ = function (id) { return document.getElementById(id); };
   // ★pin のキーは、バグるOrder受付も読み書きする（同じ t3dining.github.io なので、どちらかで1回入れれば両方で使える）。名前を変えるときは Order受付にも知らせる
-  var KEY = D.KEY = { pin: 'baguru.daicho.pin', seen: 'baguru.daicho.seen', sound: 'baguru.daicho.sound', view: 'baguru.daicho.view', shell: 'baguru.daicho.shell' };
+  var KEY = D.KEY = { pin: 'baguru.daicho.pin', seen: 'baguru.daicho.seen', sound: 'baguru.daicho.sound', shell: 'baguru.daicho.shell' };
   var POLL_MS = 15000;
 
   var ST = D.ST = { REQ: 'リクエスト', WAIT: '来店待ち', IN: '来店済み', OUT: '退店', NO: 'お断り', CXL: 'キャンセル', NOSHOW: '無断キャンセル' };
@@ -22,12 +22,16 @@
   D.STATUS_CLS = { 'リクエスト': 's-req', '来店待ち': 's-wait', '来店済み': 's-in', '退店': 's-out', 'お断り': 's-no', 'キャンセル': 's-cxl', '無断キャンセル': 's-noshow' };
 
   var st = D.st = {
-    pin: get(KEY.pin), today: '', date: '', view: get(KEY.view) || 'schedule',
+    pin: get(KEY.pin), today: '', date: '', view: startView(),
     rows: {}, pending: [], web: [], tables: [], conf: {}, days: {},
     seen: Number(get(KEY.seen) || 0), sound: get(KEY.sound) === '1',
     timer: null, busy: false, again: false, panel: null, listRange: null
   };
 
+  /** 開いたときの画面は必ずテーブル管理（ユーザーの指示）。「更新」のときだけ、見ていた画面に戻る（start.js が控える） */
+  function startView() {
+    try { var v = sessionStorage.getItem('baguru.yoyaku.view'); sessionStorage.removeItem('baguru.yoyaku.view'); return v || 'floor'; } catch (e) { return 'floor'; }
+  }
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function set(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   D.get = get; D.set = set;
@@ -233,7 +237,7 @@
 
   /* ---------- 状態を変える（レストランボードと同じく、1回押すと変わる。戻すときだけ確かめる） ---------- */
   D.setStatus = function (r, status) {
-    var undo = { '来店待ち→来店済み': false, '来店済み→来店待ち': '来店を取り消します', '来店済み→退店': '退店にします',
+    var undo = { '来店待ち→来店済み': false, '来店済み→来店待ち': '来店を取り消します', '来店済み→キャンセル': '直接来店を取り消します', 'キャンセル→来店済み': '来店済みに戻します', '来店済み→退店': '退店にします',
       '退店→来店済み': '退店を取り消します', 'キャンセル→来店待ち': '来店待ちに戻します', '無断キャンセル→来店待ち': '来店待ちに戻します' };
     var q = undo[r.status + '→' + status];
     var go = function () {
@@ -284,8 +288,8 @@
   /* ---------- 画面の切りかえ ---------- */
   var TITLES = { schedule: 'スケジュール', floor: 'テーブル管理', list: '予約リスト', requests: '予約受付', takeout: 'テイクアウト', customers: '顧客台帳', settings: '設定', more: 'その他' };
   D.show = function (view) {
-    if (!D.views[view]) view = 'schedule';
-    if (view !== 'more') { st.view = view; set(KEY.view, view); }
+    if (!D.views[view]) view = 'floor';
+    if (view !== 'more') st.view = view;
     document.querySelectorAll('.view').forEach(function (v) { v.hidden = v.dataset.view !== view; });
     document.querySelectorAll('.nav[data-view]').forEach(function (b) { b.classList.toggle('on', b.dataset.view === view); });
     $('view-title').textContent = TITLES[view];

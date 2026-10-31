@@ -53,9 +53,13 @@
   /* 更新（上の帯の右）：ページごと読み直す（公開し直した新しい画面も、いまの予約も入る。合言葉はそのまま）。
      ホーム画面に置いたときは、ブラウザの読み直しのボタンが無いので */
   $('b-reload').addEventListener('click', function () {
-    if ($('sheet').hidden) return location.reload();
+    var go = function () {
+      try { sessionStorage.setItem('baguru.yoyaku.view', st.view); } catch (e) {}
+      location.reload();
+    };
+    if ($('sheet').hidden) return go();
     D.ask({ title: '画面を更新します', text: '入れている途中の予約登録は消えます。', ok: '更新する' })
-      .then(function (y) { if (y) location.reload(); });
+      .then(function (y) { if (y) go(); });
   });
   $('b-logout').addEventListener('click', function () {
     D.ask({ title: 'ログアウトします', text: 'この端末から合言葉を消します。もう一度使うときは、合言葉を入れ直します。', ok: 'ログアウト', danger: true })

@@ -13,7 +13,7 @@
       case ST.WAIT: return b('in', '来店', 'ok big') + b('edit', '変更する') + b('cancel', 'キャンセル', 'line-ember');
       case ST.IN: return b('out', '退店', 'dark big') + b('unin', '来店取消') + b('edit', '変更する');
       case ST.OUT: return b('unout', '退店取消') + b('edit', '変更する');
-      case ST.CXL: case ST.NOSHOW: return b('back', '来店待ちに戻す');
+      case ST.CXL: case ST.NOSHOW: return b('back', r.route === '直接来店' ? '来店済みに戻す' : '来店待ちに戻す');
       default: return '';
     }
   }
@@ -62,10 +62,10 @@
     switch (act) {
       case 'close': return D.closePanel();
       case 'in': return D.setStatus(r, ST.IN);
-      case 'unin': return D.setStatus(r, ST.WAIT);
+      case 'unin': return D.setStatus(r, r.route === '直接来店' ? ST.CXL : ST.WAIT);   // 直接来店は待っている予約ではないので、取り消したら残さない
       case 'out': return D.setStatus(r, ST.OUT);
       case 'unout': return D.setStatus(r, ST.IN);
-      case 'back': return D.setStatus(r, ST.WAIT);
+      case 'back': return D.setStatus(r, r.route === '直接来店' ? ST.IN : ST.WAIT);
       case 'cancel': return D.cancel(r);
       case 'edit': D.closePanel(); return D.openRegister({ row: r });
       case 'approve': return D.approve(r);
