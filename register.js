@@ -7,14 +7,18 @@
   var D = window.D, esc = D.esc, st = D.st, ST = D.ST, $ = D.$;
 
   /* ---------- 席を選ぶ部品（登録の2段目と、リクエストの承認で使う） ---------- */
+  /** 席を選ぶときの見出し：名前の頭の英字で A卓・B卓・C卓 にまとめる。★席の「グループ」は、ネット予約の席の合わせ方に使うので、ここでは使わない */
+  function seatCat(t) { var m = /^[A-Za-z]/.exec(t.name); return m ? m[0].toUpperCase() + '卓' : t.group; }
   D.tableChooser = function (box, o) {
     var sel = (o.selected || []).slice(), keep = o.keep;
     function render() {
       var a = D.toMin(o.start), b = a + keep, groups = [], byG = {};
       D.shownTables().forEach(function (t) {
-        if (!byG[t.group]) { byG[t.group] = []; groups.push(t.group); }
-        byG[t.group].push(t);
+        var g = seatCat(t);
+        if (!byG[g]) { byG[g] = []; groups.push(g); }
+        byG[g].push(t);
       });
+      groups.sort(function (x, y) { var p = /卓$/.test(x), q = /卓$/.test(y); return p && q ? (x < y ? -1 : 1) : p ? -1 : q ? 1 : 0; });   // A卓・B卓・C卓の順。そのほかは後ろ
       var total = sel.reduce(function (n, id) { var t = D.table(id); return n + (t ? t.cap : 0); }, 0), lack = o.people - total;
       box.innerHTML = groups.map(function (g) {
         return '<div class="tc-g"><p class="tc-gn">' + esc(g) + '</p><div class="tc-row">' + byG[g].map(function (t) {
