@@ -162,7 +162,7 @@
     var days = {};
     if (r.days[r.today]) days[r.today] = r.days[r.today];
     var conf = Object.assign({}, r.conf);
-    ['staff', 'parttime', 'roster'].forEach(function (k) { delete conf[k]; });   // ★担当者の名前（従業員の名前）は端末に残さない
+    ['staff', 'parttime'].forEach(function (k) { delete conf[k]; });   // ★担当者の名前（従業員の名前）は端末に残さない
     set(KEY.shell, JSON.stringify({ today: r.today, tables: r.tables, conf: conf, days: days }));
   }
   /** 覚えている席の並びで、予約の無い画面を先に出す。出せたら true（初めての端末や、ログアウトのあとは出せない） */

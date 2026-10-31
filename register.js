@@ -244,7 +244,7 @@
 
   /* 担当者：お店で入れる予約（電話・店頭など）で選ぶ。ネット予約（ホームページ・アプリ）と直接来店は選ばない。
      新しく入れるときは必ず選ぶ（1人も入っていなければ選ばずに入れられる）。
-     並びは、社員（「設定」の「担当者」で入れた順。いつも先）→ アルバイト（受け口が T3Works のマネージの名簿から読む。名簿の順） */
+     並びは、社員（いつも先）→ アルバイト。どちらも「設定」の「担当者」に並んでいる順 */
   var NO_STAFF = { 'ホームページ': true, 'アプリ': true, '直接来店': true };
   function staffGroups() {
     var emp = st.conf.staff || [], pt = (st.conf.parttime || []).filter(function (n) { return emp.indexOf(n) < 0; });
@@ -258,7 +258,6 @@
     return '<p class="lbl">担当者' + (must ? '<span class="need">必須</span>' : '') + '</p>'
       + (g.emp.length + g.pt.length + g.gone.length ? '<div class="kgrid" id="r-staff">' + chips(g.emp) + chips(g.gone)
         + (g.pt.length ? '<span class="stf-sep">アルバイト</span>' + chips(g.pt) : '') + '</div>'
-        + (st.conf.roster && st.conf.roster.err ? '<p class="muted">★アルバイトの名前を、名簿から読めていません（くわしくは「設定」→「担当者」）。</p>' : '')
         : '<p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>');
   }
 

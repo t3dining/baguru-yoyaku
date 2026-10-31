@@ -482,13 +482,12 @@ dl.conf dd{margin:0; font-weight:700}
 .set-acts.left{justify-content:flex-start}
 .set-list{margin:0; padding-left:1.2em; font-size:14px; line-height:1.9}
 /* 担当者（settings.js） */
-.stf-list{list-style:none; margin:0 0 10px; padding:0; display:flex; flex-wrap:wrap; gap:8px}
-.stf-list li{display:flex; align-items:center; gap:10px; padding:4px 4px 4px 14px; border:1px solid var(--line2); border-radius:var(--r); background:#faf7f2; font-weight:700; font-size:16px}
-.stf-add{display:flex; gap:8px; max-width:420px}
-.stf-add input{flex:1; min-width:0; font-size:16px; padding:10px 12px; border:1px solid var(--line2); border-radius:var(--r); background:#fff}
+.stf-list{list-style:none; margin:0 0 10px; padding:0; display:grid; gap:6px; max-width:460px}
+.stf-list li{display:flex; align-items:center; gap:6px; padding:4px 4px 4px 14px; border:1px solid var(--line2); border-radius:var(--r); background:#faf7f2; font-weight:700; font-size:16px}
+.stf-name{flex:1; min-width:0; overflow-wrap:anywhere}
+.stf-add{display:flex; flex-wrap:wrap; gap:8px; max-width:560px}
+.stf-add input{flex:1; min-width:160px; font-size:16px; padding:10px 12px; border:1px solid var(--line2); border-radius:var(--r); background:#fff}
 #set-staff .empty{padding:6px 0 12px}
-.stf-list.ro li{padding:8px 14px; background:#fff}
-.stf-warn{margin:6px 0 10px; padding:8px 12px; border-radius:var(--r); background:#fbe4de; color:var(--ember2); font-weight:700; font-size:14px}
 .stf-sep{flex-basis:100%; font-size:12.5px; font-weight:700; color:var(--muted); margin-top:4px}   /* 予約登録の担当者：アルバイトの見出し */
 .bnav{display:none}
 
