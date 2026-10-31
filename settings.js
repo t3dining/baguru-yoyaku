@@ -153,7 +153,7 @@
   }
   function staffHtml() {
     var seg = function (v, t) { return '<button type="button" class="seg' + (addAs === v ? ' on' : '') + '" data-s="stf-as" data-v="' + v + '">' + t + '</button>'; };
-    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話・店頭など）に選ぶ名前です。予約登録では、社員がいつも先に並び、そのあとにアルバイトが並びます。どちらも、ここに並んでいる順です。1人でもいると、予約登録で必ず選ぶようになります。</p>'
+    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話など）に選ぶ名前です。予約登録では、社員がいつも先に並び、そのあとにアルバイトが並びます。どちらも、ここに並んでいる順です。1人でもいると、予約登録で必ず選ぶようになります。</p>'
       + '<h3>社員</h3>' + staffRows('staff') + '<h3>アルバイト</h3>' + staffRows('parttime')
       + '<h3>名前を足す</h3><div class="stf-add"><div class="segs">' + seg('staff', '社員') + seg('parttime', 'アルバイト') + '</div>'
       + '<input type="text" id="s-stf-new" maxlength="20" placeholder="名前を入れる" autocomplete="off" enterkeyhint="done">'
