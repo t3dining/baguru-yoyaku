@@ -508,7 +508,6 @@ dl.conf dd{margin:0; font-weight:700}
   .floor-side{border-left:0; border-top:1px solid var(--line)}
 }
 @media (max-width:760px){
-  html{background:var(--coal)}   /* iPhone で下の帯のさらに下にすき間ができても、下の帯とつながって見えるように */
   .app{grid-template-columns:1fr; height:calc(100dvh - 62px)}
   .side{display:none}
   .bnav{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:35; background:var(--coal); padding-bottom:env(safe-area-inset-bottom)}
