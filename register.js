@@ -284,7 +284,7 @@
       + '<div class="fg"><div><label for="r-sei">苗字（カタカナ）' + (f.route === '直接来店' ? '' : '<span class="need">必須</span>') + '</label><input type="text" id="r-sei" maxlength="20" value="' + esc(f.sei) + '" placeholder="例：ヤマダ" autocomplete="off"></div>'
       + '<div><label for="r-mei">名前（カタカナ）</label><input type="text" id="r-mei" maxlength="20" value="' + esc(f.mei) + '" placeholder="例：タロウ" autocomplete="off"></div>'
       + '<div><label for="r-tel">電話番号</label><input type="tel" id="r-tel" maxlength="20" inputmode="tel" value="' + esc(f.tel) + '" autocomplete="off"></div>'
-      + '<div><label for="r-email">メール</label><input type="email" id="r-email" maxlength="120" inputmode="email" value="' + esc(f.email) + '" autocomplete="off"></div></div>'
+      + '</div>'
       + '<div id="r-cust">' + custBox() + '</div>'
       + '<p class="lbl">キーワード</p><div class="kgrid">' + kws + '</div>'
       + '<div class="dessert"><label class="chk"><input type="checkbox" id="r-dessert"' + (f.dessert ? ' checked' : '') + '>デザートプレート<small>要予約・税込1,100円</small></label>'
@@ -315,7 +315,7 @@
     if (step !== 3) return;
     f.sei = D.kata($('r-sei').value.trim()); f.mei = D.kata($('r-mei').value.trim());
     if (f.useKana) f.kana = fullName(); else f.name = fullName();
-    f.tel = $('r-tel').value.trim(); f.email = $('r-email').value.trim();
+    f.tel = $('r-tel').value.trim();
     f.route = $('r-route').value; f.status = $('r-status').value; f.memo = $('r-memo').value.trim();
     f.dessert = $('r-dessert').checked; f.plateMsg = f.dessert && $('r-plate') ? $('r-plate').value.trim() : f.dessert ? f.plateMsg : '';
   }
@@ -403,7 +403,7 @@
       var c = found[Number(ds.pick)];
       f.cid = c.cid; f.cust = c; found = [];
       if (!f.sei) { f.name = c.name; f.kana = c.kana; f.useKana = !!c.kana; setParts(); }
-      if (!f.tel) f.tel = c.tel; if (!f.email) f.email = c.email;
+      if (!f.tel) f.tel = c.tel;
       return step3();
     }
     switch (ds.r) {
@@ -420,7 +420,6 @@
         if (!f.sei && f.route !== '直接来店') return showErr('苗字を入れてください。');
         if (!f.id && needStaff() && (st.conf.staff || []).length + (st.conf.parttime || []).length && !f.staff) return showErr('担当者を選んでください。');
         if (f.tel && !/^0\d{9,10}$/.test(f.tel.replace(/[^\d]/g, ''))) return showErr('電話番号の形が違います（例：090-1234-5678）。');
-        if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) return showErr('メールアドレスの形が違います。');
         return go(4);
       case 'save': return save(b);
     }
