@@ -51,6 +51,8 @@
     return LABEL[o.status];
   }
   var mealsOf = function (o) { return o.meals ? o.meals + '食' : ''; };
+  /** 注文番号は3桁（受け口の前の版では、シートで数になった行が 1 のように届く） */
+  var noOf = function (o) { var s = String(o.no == null ? '' : o.no); return /^\d{1,2}$/.test(s) ? ('00' + s).slice(-3) : s; };
 
   /* ---------- 画面 ---------- */
   function lineHtml(l) {
@@ -59,7 +61,7 @@
   function card(o, now) {
     var fee = o.kind === 'delivery' ? (o.fee != null ? '　配達料 ' + yen(o.fee) : (o.meals < freeMin() ? '　配達料は要相談' : '　配達無料')) : '';
     return '<article class="to-card k-' + o.kind + ' s-' + o.status + (o.status === 'new' || o.status === 'request' ? ' is-new' : '') + '">'
-      + '<div class="to-head"><b class="to-no">' + (isReq(o) ? '申請 ' : 'No.') + esc(o.no) + '</b>'
+      + '<div class="to-head"><b class="to-no">' + (isReq(o) ? '申請 ' : 'No.') + esc(noOf(o)) + '</b>'
       + '<span class="to-kind">' + esc(KIND[o.kind] || '') + '</span><span class="to-route">' + esc(o.route || 'アプリ') + '</span>'
       + '<span class="to-st">' + esc(statusLabel(o, now)) + '</span></div>'
       + '<p class="to-when"><b>' + esc(whenText(o)) + '</b> ' + (o.kind === 'delivery' ? 'お届け' : '受け取り') + (o.status === 'request' ? '（ご希望）' : '') + ' <span>' + untilText(o, now) + '</span></p>'
@@ -103,7 +105,7 @@
     if (!todo.length || st.view === 'takeout') bar.hidden = true;
     else {
       var f = todo[0];
-      $('orderbar-text').textContent = 'テイクアウトの注文・申請が ' + todo.length + '件 Order受付で待っています（' + (isReq(f) ? '申請 ' : 'No.') + f.no + '・' + whenText(f) + (todo.length > 1 ? ' 他' : '') + '）';
+      $('orderbar-text').textContent = 'テイクアウトの注文・申請が ' + todo.length + '件 Order受付で待っています（' + (isReq(f) ? '申請 ' : 'No.') + noOf(f) + '・' + whenText(f) + (todo.length > 1 ? ' 他' : '') + '）';
       bar.hidden = false;
     }
   };
