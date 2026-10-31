@@ -3,7 +3,7 @@
    ・直すときは、先に画面を変えてから受け口へ送る。だめだったら元に戻して知らせる
    ・ほかの端末で先に変わっていたら（更新日時がちがう）、読み直して知らせる
    ・合言葉はこの端末の localStorage にだけ覚える。お客様の情報は端末に残さない
-   ・開いてすぐ席を出せるように、席の並び・設定・今日の営業時間（お客様の情報ではないもの）だけは覚えておき、
+   ・開いてすぐ席を出せるように、席の並び・設定（担当者の名前を除く）・今日の営業時間だけは覚えておき、
      受け口の返事を待つあいだ、予約の無い形で先に出す（上に「予約を読み込んでいます」）。予約が届いたら入れかえる
    画面ごとの中身は schedule.js・floor.js・lists.js・settings.js、予約の詳細は detail.js、登録は register.js */
 (function () {
@@ -161,7 +161,9 @@
   function saveShell(r) {
     var days = {};
     if (r.days[r.today]) days[r.today] = r.days[r.today];
-    set(KEY.shell, JSON.stringify({ today: r.today, tables: r.tables, conf: r.conf, days: days }));
+    var conf = Object.assign({}, r.conf);
+    ['staff', 'parttime', 'roster'].forEach(function (k) { delete conf[k]; });   // ★担当者の名前（従業員の名前）は端末に残さない
+    set(KEY.shell, JSON.stringify({ today: r.today, tables: r.tables, conf: conf, days: days }));
   }
   /** 覚えている席の並びで、予約の無い画面を先に出す。出せたら true（初めての端末や、ログアウトのあとは出せない） */
   D.warmStart = function () {
