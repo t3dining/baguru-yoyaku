@@ -170,13 +170,14 @@
     var now = D.nowMin(), nextQ = D.hm(Math.min(23 * 60 + 50, D.nextStep(now)));
     f = r ? {
       id: r.id, expect: r.updatedAt, date: r.date, start: r.start, people: r.people, keep: r.keep, tables: r.tables.slice(),
-      name: r.name, kana: r.kana, tel: r.tel, email: r.email, route: r.route, keywords: r.keywords.slice(), memo: r.memo,
+      name: r.name, kana: r.kana, useKana: !!r.kana, tel: r.tel, email: r.email, route: r.route, keywords: r.keywords.slice(), memo: r.memo,
       dessert: r.dessert === true, plateMsg: r.plateMsg || '', status: r.status, cid: r.cid, cust: r.cust, no: r.no, staff: r.staff || ''
     } : {
       date: o.date || st.date || st.today, start: o.start || (o.date && o.date !== st.today ? '18:00' : nextQ), people: o.people || 0,
-      keep: st.conf.keep || 90, tables: o.tables || [], name: '', kana: '', tel: '', email: '', route: '電話', keywords: [], memo: '',
+      keep: st.conf.keep || 90, tables: o.tables || [], name: '', kana: '', useKana: false, tel: '', email: '', route: '電話', keywords: [], memo: '',
       dessert: false, plateMsg: '', status: ST.WAIT, cid: '', cust: null, staff: ''
     };
+    setParts();
     rid = D.A.rid(); found = [];
     sheet.hidden = false;
     document.body.classList.add('no-scroll');
@@ -196,7 +197,7 @@
   function summary() {
     var e = D.toMin(f.start) + f.keep;
     return '<span>' + esc(D.jp(f.date)) + ' <b>' + esc(f.start) + '</b>〜' + D.hm(e) + '</span><span><b>' + (f.people || '－') + '</b>名</span>'
-      + '<span>' + (f.tables.length ? esc(D.tableNames(f.tables)) : '席 未割り当て') + '</span>' + (f.name ? '<span>' + esc(f.name) + ' 様</span>' : '');
+      + '<span>' + (f.tables.length ? esc(D.tableNames(f.tables)) : '席 未割り当て') + '</span>' + (f.sei ? '<span>' + esc(fullName()) + ' 様</span>' : '');
   }
   function go(n) { step = n; draw(); }
   function draw() {
@@ -265,6 +266,14 @@
         : '<p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>');
   }
 
+  /* お名前：苗字と名前の2欄（カタカナで入れる）。保存は半角の空白でつなぐ。ひらがなで入れたらカタカナにする。
+     ネット予約の予約は name が漢字、kana がカタカナなので、この2欄は kana を直す（f.useKana）。name はそのまま */
+  function setParts() {
+    var a = D.kata(f.useKana ? f.kana : f.name).trim().split(/[\s\u3000]+/);
+    f.sei = a[0] || ''; f.mei = a.slice(1).join(' ');
+  }
+  function fullName() { return [f.sei, f.mei].filter(String).join(' '); }
+
   /* 3. お客様 */
   function step3() {
     var kws = (st.conf.keywords || []).map(function (k) { return '<button type="button" class="kchip' + (f.keywords.indexOf(k) >= 0 ? ' on' : '') + '" data-kw="' + esc(k) + '">' + esc(k) + '</button>'; }).join('');
@@ -272,8 +281,8 @@
     if (f.route && routes.indexOf(f.route) < 0) routes.push(f.route);
     var stats = f.id ? D.STATUS_LIST() : [ST.WAIT, ST.IN];
     frame('<h3 class="q">お名前とお電話番号を教えてください</h3>'
-      + '<div class="fg"><div><label for="r-name">お名前' + (f.route === '直接来店' ? '' : '<span class="need">必須</span>') + '</label><input type="text" id="r-name" maxlength="40" value="' + esc(f.name) + '" autocomplete="off"></div>'
-      + '<div><label for="r-kana">かな</label><input type="text" id="r-kana" maxlength="40" value="' + esc(f.kana) + '" autocomplete="off"></div>'
+      + '<div class="fg"><div><label for="r-sei">苗字（カタカナ）' + (f.route === '直接来店' ? '' : '<span class="need">必須</span>') + '</label><input type="text" id="r-sei" maxlength="20" value="' + esc(f.sei) + '" placeholder="例：ヤマダ" autocomplete="off"></div>'
+      + '<div><label for="r-mei">名前（カタカナ）</label><input type="text" id="r-mei" maxlength="20" value="' + esc(f.mei) + '" placeholder="例：タロウ" autocomplete="off"></div>'
       + '<div><label for="r-tel">電話番号</label><input type="tel" id="r-tel" maxlength="20" inputmode="tel" value="' + esc(f.tel) + '" autocomplete="off"></div>'
       + '<div><label for="r-email">メール</label><input type="email" id="r-email" maxlength="120" inputmode="email" value="' + esc(f.email) + '" autocomplete="off"></div></div>'
       + '<div id="r-cust">' + custBox() + '</div>'
@@ -304,7 +313,9 @@
   }
   function readStep3() {
     if (step !== 3) return;
-    f.name = $('r-name').value.trim(); f.kana = $('r-kana').value.trim(); f.tel = $('r-tel').value.trim(); f.email = $('r-email').value.trim();
+    f.sei = D.kata($('r-sei').value.trim()); f.mei = D.kata($('r-mei').value.trim());
+    if (f.useKana) f.kana = fullName(); else f.name = fullName();
+    f.tel = $('r-tel').value.trim(); f.email = $('r-email').value.trim();
     f.route = $('r-route').value; f.status = $('r-status').value; f.memo = $('r-memo').value.trim();
     f.dessert = $('r-dessert').checked; f.plateMsg = f.dessert && $('r-plate') ? $('r-plate').value.trim() : f.dessert ? f.plateMsg : '';
   }
@@ -312,7 +323,7 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(function () {
       if (!f || step !== 3) return;
-      var tel = $('r-tel').value.replace(/[^\d]/g, ''), name = $('r-name').value.trim();
+      var tel = $('r-tel').value.replace(/[^\d]/g, ''), name = D.kata($('r-sei').value.trim() + ' ' + $('r-mei').value.trim()).trim();
       var q = tel.length >= 4 ? tel : name.length >= 2 ? name : '';
       if (!q) { found = []; $('r-cust').innerHTML = custBox(); return; }
       D.post({ action: 'customers', q: q }).then(function (res) {
@@ -343,7 +354,7 @@
       + (warn.length ? '<ul class="warns">' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' : '')
       + '<dl class="conf">' + row('日時', esc(D.jp(f.date) + ' ' + f.start + '〜' + D.hm(D.toMin(f.start) + f.keep)) + '（確保 ' + f.keep + '分）')
       + row('人数', f.people + '名') + row('テーブル', f.tables.length ? esc(D.tableNames(f.tables)) : '未割り当て')
-      + row('お名前', esc(f.name || '（なし）') + (f.kana ? '（' + esc(f.kana) + '）' : '')) + row('電話番号', esc(f.tel)) + row('メール', esc(f.email))
+      + row('お名前', esc(fullName() || '（なし）') + (f.useKana && f.name && f.name !== fullName() ? '（' + esc(f.name) + '）' : '')) + row('電話番号', esc(f.tel)) + row('メール', esc(f.email))
       + row('キーワード', esc(f.keywords.join('・')))
       + row('デザートプレート', f.dessert ? '注文あり（税込1,100円）' + (f.plateMsg ? '<br>メッセージ「' + esc(f.plateMsg) + '」' : '<br>メッセージなし') : '') + row('予約経路', esc(f.route)) + row('担当者', needStaff() ? esc(f.staff) : '') + row('状態', esc(f.status)) + row('メモ', esc(f.memo)) + '</dl>'
       + '<p class="err" id="r-err" hidden></p>',
@@ -391,12 +402,13 @@
     if (ds.pick) {
       var c = found[Number(ds.pick)];
       f.cid = c.cid; f.cust = c; found = [];
-      if (!f.name) f.name = c.name; if (!f.kana) f.kana = c.kana; if (!f.tel) f.tel = c.tel; if (!f.email) f.email = c.email;
+      if (!f.sei) { f.name = c.name; f.kana = c.kana; f.useKana = !!c.kana; setParts(); }
+      if (!f.tel) f.tel = c.tel; if (!f.email) f.email = c.email;
       return step3();
     }
     switch (ds.r) {
       case 'close':
-        if (step > 1 || f.name) return D.ask({ title: '入れた内容を捨てて閉じますか？', ok: '閉じる', danger: true }).then(function (y) { if (y) D.closeRegister(); });
+        if (step > 1 || f.sei) return D.ask({ title: '入れた内容を捨てて閉じますか？', ok: '閉じる', danger: true }).then(function (y) { if (y) D.closeRegister(); });
         return D.closeRegister();
       case 'skip': f.tables = []; return go(3);
       case 'to1': return go(1);
@@ -405,7 +417,7 @@
       case 'uncust': f.cid = ''; f.cust = null; return step3();
       case 'confirm':
         if (!f.people) { go(1); return; }
-        if (!f.name && f.route !== '直接来店') return showErr('お名前を入れてください。');
+        if (!f.sei && f.route !== '直接来店') return showErr('苗字を入れてください。');
         if (!f.id && needStaff() && (st.conf.staff || []).length + (st.conf.parttime || []).length && !f.staff) return showErr('担当者を選んでください。');
         if (f.tel && !/^0\d{9,10}$/.test(f.tel.replace(/[^\d]/g, ''))) return showErr('電話番号の形が違います（例：090-1234-5678）。');
         if (f.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) return showErr('メールアドレスの形が違います。');
@@ -417,7 +429,7 @@
     if (!f) return;
     var id = e.target.id;
     if (id === 'r-people') { f.people = Number(e.target.value) || 0; sheet.querySelectorAll('[data-r="skip"],[data-r="to2"]').forEach(function (x) { x.disabled = !f.people; }); }
-    if (id === 'r-tel' || id === 'r-name') search();
+    if (id === 'r-tel' || id === 'r-sei' || id === 'r-mei') search();
   });
   sheet.addEventListener('change', function (e) {
     if (!f) return;

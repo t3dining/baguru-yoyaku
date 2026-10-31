@@ -30,7 +30,7 @@
       + (inline ? '' : '<button type="button" class="x" data-act="close" aria-label="閉じる"><svg class="i"><use href="#i-x"/></svg></button>') + '</div>'
       + '<p class="dt-when">' + esc(D.jp(r.date)) + '　<b>' + esc(r.start) + '</b>〜' + esc(D.hm(sp[1])) + '</p>'
       + '<p class="dt-big"><b>' + r.people + '</b>名<span class="dt-tables">' + (r.tables.length ? esc(D.tableNames(r.tables)) : '<em>席が未割り当て</em>') + '</span></p>'
-      + '<h2 class="dt-name">' + esc(D.name(r)) + (r.name ? ' 様' : '') + (r.kana ? '<small>' + esc(r.kana) + '</small>' : '') + '</h2>'
+      + '<h2 class="dt-name">' + esc(D.name(r)) + (r.name || r.kana ? ' 様' : '') + (r.kana && r.name && r.name !== D.name(r) ? '<small>' + esc(r.name) + '</small>' : '') + '</h2>'
       + custLine
       + '<p class="dt-contact">' + D.telLink(r.tel) + (r.email ? '<span class="mail">' + esc(r.email) + '</span>' : '') + '</p>'
       + (r.keywords.length ? '<p class="dt-kw">' + r.keywords.map(function (k) { return '<span>' + esc(k) + '</span>'; }).join('') + '</p>' : '')
@@ -90,7 +90,7 @@
   D.approve = function (r) {
     var sel = suggest(r), keep = r.keep;
     var m = D.modal('<h2>承認して、確定のメールを送ります</h2>'
-      + '<p class="m-text">' + esc(D.jp(r.date) + ' ' + r.start + '　' + r.people + '名　' + r.name + ' 様') + '</p>'
+      + '<p class="m-text">' + esc(D.jp(r.date) + ' ' + r.start + '　' + r.people + '名　' + D.name(r) + ' 様') + '</p>'
       + '<p class="m-sub">席を選んでください（後から動かせます）</p><div id="ap-tables"></div>'
       + '<p class="m-note">★送ったメールは取り消せません。</p>'
       + '<p class="err" id="ap-err" hidden></p>'
@@ -110,7 +110,7 @@
     $modalLock(true);
   };
   D.decline = function (r) {
-    D.ask({ title: 'お断りのメールを送ります', text: r.name + ' 様（' + D.md(r.date) + ' ' + r.start + '・' + r.people + '名）に「ご希望の日時は席をご用意できないため、お受けできませんでした」と届きます。送ったメールは取り消せません。', ok: 'お断りを送る', danger: true })
+    D.ask({ title: 'お断りのメールを送ります', text: D.name(r) + ' 様（' + D.md(r.date) + ' ' + r.start + '・' + r.people + '名）に「ご希望の日時は席をご用意できないため、お受けできませんでした」と届きます。送ったメールは取り消せません。', ok: 'お断りを送る', danger: true })
       .then(function (yes) { if (yes) decide(r, 'お断り'); });
   };
   function $modalLock(on) { if (on) D.$('modal').dataset.lock = '1'; else delete D.$('modal').dataset.lock; }
@@ -118,7 +118,7 @@
     D.post({ action: 'decide', id: r.id, decision: decision, tables: tables, keep: keep }).then(function (res) {
       $modalLock(false); D.closeModal();
       D.put(res.row);
-      var who = esc(r.name) + ' 様（' + esc(D.md(r.date)) + ' ' + esc(r.start) + '）';
+      var who = esc(D.name(r)) + ' 様（' + esc(D.md(r.date)) + ' ' + esc(r.start) + '）';
       if (res.mailed === false) D.toast('★' + who + 'を「' + decision + '」にしましたが、メールを送れませんでした。お電話でお知らせください：' + D.telLink(r.tel), { warn: true });
       else D.toast(who + 'を「' + decision + '」にしました。' + (decision === '承認' ? '確定' : 'お断り') + 'のメールを送りました');
     }).catch(function (e) {
@@ -127,7 +127,7 @@
       if (e.code === 'already' && row) {
         D.put(row);
         // 送り直しで2回届いたときは、1回目で済んでいる
-        if ((decision === '承認' && row.status !== ST.NO) || (decision === 'お断り' && row.status === ST.NO)) D.toast(esc(r.name) + ' 様を「' + decision + '」にしました');
+        if ((decision === '承認' && row.status !== ST.NO) || (decision === 'お断り' && row.status === ST.NO)) D.toast(esc(D.name(r)) + ' 様を「' + decision + '」にしました');
         else D.toast('他の端末で、先に「' + esc(row.status) + '」になっていました', { warn: true });
         return;
       }

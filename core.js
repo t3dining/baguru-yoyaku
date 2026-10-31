@@ -69,7 +69,10 @@
   D.table = function (id) { return st.tables.filter(function (t) { return t.id === id; })[0] || null; };
   D.shownTables = function () { return st.tables.filter(function (t) { return t.show; }); };
   D.tableNames = function (ids) { return ids.map(function (id) { var t = D.table(id); return t ? t.name : id; }).join('・'); };
-  D.name = function (r) { return r.name || (r.route === '直接来店' ? '直接来店' : '（お名前なし）'); };
+  /** ひらがな → カタカナ */
+  D.kata = function (s) { return String(s || '').replace(/[\u3041-\u3096]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 96); }); };
+  /** 画面に出す名前：カタカナのフルネームがあれば、それを出す（ネット予約は kana にカタカナ、name に漢字が入る） */
+  D.name = function (r) { return D.kata(r.kana).trim() || r.name || (r.route === '直接来店' ? '直接来店' : '（お名前なし）'); };
   D.isPhone = function () { return window.matchMedia('(max-width: 760px)').matches; };
   /** その席・その時間にかかる、ほかの予約 */
   D.clashes = function (date, tables, a, b, exceptId) {

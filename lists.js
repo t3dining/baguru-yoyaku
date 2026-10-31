@@ -73,7 +73,7 @@
     var c = r.cust;
     return '<article class="rq" data-id="' + esc(r.id) + '">'
       + '<div class="rq-when"><span>' + esc(D.jp(r.date)) + '</span><b>' + esc(r.start) + '</b></div>'
-      + '<div class="rq-main"><p class="rq-top"><b>' + esc(r.name) + ' 様</b><span class="rq-ppl"><b>' + r.people + '</b>名</span>'
+      + '<div class="rq-main"><p class="rq-top"><b>' + esc(D.name(r)) + ' 様</b><span class="rq-ppl"><b>' + r.people + '</b>名</span>'
       + (r.createdAt > st.seen ? '<span class="new">NEW</span>' : '') + '</p>'
       + '<p class="rq-tags">' + (r.seat && r.seat !== 'どちらでも' ? '<span>' + esc(r.seat) + '希望</span>' : '') + (r.kids ? '<span>お子様連れ</span>' : '') + (r.dessert ? '<span class="cele">デザートプレート</span>' : '')
       + (c ? '<span>' + (c.visits ? '来店 ' + c.visits + '回' : '初めて') + '</span>' : '') + (c && c.caution ? '<span class="warn">！要確認</span>' : '')
