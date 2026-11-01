@@ -66,19 +66,20 @@
       .then(function (y) { if (y) D.logout(''); });
   });
 
-  /* バグる Owner（フォルダーアプリ）から開いたとき（アドレスに ?from=owner）だけ、上の帯と合言葉の画面に「ホーム」を出す。
-     印は sessionStorage に残す（更新・合言葉の画面のあとも出し続ける）。戻り先は、バグる Owner が控える bg.owner（同じ t3dining.github.io なので読める） */
-  var OWNER_HOME = 'https://t3dining.github.io/baguru-app/owner/';
+  /* バグる Owner・バグる Staff（フォルダーアプリ）から開いたとき（アドレスに ?from=owner）だけ、上の帯と合言葉の画面に「ホーム」を出す。
+     印は sessionStorage に残す（更新・合言葉の画面のあとも出し続ける）。戻り先は、そのタブの控え bg.owner、無ければ端末に残る bg.hub（Owner・Staff が開いたときに入れる。同じ t3dining.github.io なので読める） */
+  var OWNER_HOME = 'https://t3dining.github.io/baguru-owner/';
   function sget(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
   if (/[?&]from=owner(&|$)/.test(location.search)) { try { sessionStorage.setItem('baguru.yoyaku.owner', '1'); } catch (e) {} }
   if (sget('baguru.yoyaku.owner') === '1') {
-    var goHome = function () { location.href = sget('bg.owner') || OWNER_HOME; };
+    var hub = function () { try { return localStorage.getItem('bg.hub'); } catch (e) { return null; } };
+    var goHome = function () { location.href = sget('bg.owner') || hub() || OWNER_HOME; };
     $('login-home').hidden = false;
     $('login-home').addEventListener('click', goHome);
     $('b-home').hidden = false;
     $('b-home').addEventListener('click', function () {
       if ($('sheet').hidden) return goHome();
-      D.ask({ title: 'バグる Owner に戻ります', text: '入れている途中の予約登録は消えます。', ok: '戻る' }).then(function (y) { if (y) goHome(); });
+      D.ask({ title: 'ホームに戻ります', text: '入れている途中の予約登録は消えます。', ok: '戻る' }).then(function (y) { if (y) goHome(); });
     });
   }
 
