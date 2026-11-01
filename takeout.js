@@ -56,7 +56,7 @@
 
   /* ---------- 画面 ---------- */
   function lineHtml(l) {
-    return '<li><span>' + esc(l.name) + ' <b>×' + l.qty + '</b>' + (l.opts && l.opts.length ? '<small>' + esc(l.opts.join(' / ')) + '</small>' : '') + '</span><i>' + yen(l.unit * l.qty) + '</i></li>';
+    return '<li><span>' + esc(l.name) + ' <b>×' + esc(l.qty) + '</b>' + (l.opts && l.opts.length ? '<small>' + esc(l.opts.join(' / ')) + '</small>' : '') + '</span><i>' + yen(l.unit * l.qty) + '</i></li>';
   }
   function card(o, now) {
     var fee = o.kind === 'delivery' ? (o.fee != null ? '　配達料 ' + yen(o.fee) : (o.meals < freeMin() ? '　配達料は要相談' : '　配達無料')) : '';

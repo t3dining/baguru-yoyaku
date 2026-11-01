@@ -19,12 +19,15 @@
     for (var i = 0; i < 3; i++) {
       if (i) await wait(800 * i);
       try {
+        var ctl = new AbortController(), limit = setTimeout(function () { ctl.abort(); }, 30000);   // 返事が来ないまま止まらないように、30秒で打ち切る（2026-11-01）
         var res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload),
-          redirect: 'follow'
+          redirect: 'follow',
+          signal: ctl.signal
         });
+        clearTimeout(limit);
         var obj = null;
         try { obj = JSON.parse(await res.text()); } catch (e) { obj = null; }
         if (!obj) { last = fail('no_answer'); continue; }
