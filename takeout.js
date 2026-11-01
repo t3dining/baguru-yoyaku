@@ -120,16 +120,16 @@
   $('orderbar-go').addEventListener('click', function () { D.show('takeout'); });
 
   /* ---------- テーブル管理の「今日の予約」に出す分（floor.js） ----------
-     今日受け取る、時間を指定した注文（予約注文）。「できしだい」は予約ではないので出さない。申請中は、予約のリクエストと同じく出さない。取り消し・お断りも出さない */
+     今日受け取る注文（時間を指定した予約注文と「できしだい」。2026-11-02 ユーザーの指示）。申請中は、予約のリクエストと同じく出さない。取り消し・お断りも出さない */
   var TODAY = { new: true, accepted: true, ready: true, done: true };
   D.todayOrders = function () {
-    return st.orders.filter(function (o) { return TODAY[o.status] && !o.asap && msOf(o) && D.ymdOf(msOf(o)) === st.today; });
+    return st.orders.filter(function (o) { return TODAY[o.status] && msOf(o) && D.ymdOf(msOf(o)) === st.today; });
   };
   D.orderTime = function (o) { return D.clock(msOf(o)); };
   D.orderLine = function (o) {
     return '<button type="button" class="tl tl-order k-' + esc(o.kind) + '" data-order="' + esc(o.id) + '"><span class="tl-head"><span class="to-kind">' + esc(KIND[o.kind] || 'テイクアウト') + '</span><span class="to-st">' + esc(statusLabel(o, Date.now())) + '</span></span>'
       + '<span class="tl-name">' + esc(o.name || '（お名前なし）') + ' 様' + (o.meals ? '　' + esc(mealsOf(o)) : '') + '</span>'
-      + '<span class="tl-sub">' + esc(D.orderTime(o)) + ' ' + (o.kind === 'delivery' ? 'お届け' : '受け取り') + '　No.' + esc(noOf(o)) + '</span></button>';
+      + '<span class="tl-sub">' + esc(o.asap ? 'できしだい（' + D.orderTime(o) + '頃）' : D.orderTime(o)) + ' ' + (o.kind === 'delivery' ? 'お届け' : '受け取り') + '　No.' + esc(noOf(o)) + '</span></button>';
   };
   /** 注文のところを開く（予約ボードでは見るだけ） */
   D.openOrder = function (id) {
