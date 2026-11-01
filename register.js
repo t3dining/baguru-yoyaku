@@ -249,10 +249,10 @@
 
   /* 担当者：お店で入れる予約（電話など）で選ぶ。ネット予約（ホームページ・アプリ）と直接来店は選ばない。
      新しく入れるときは必ず選ぶ（1人も入っていなければ選ばずに入れられる）。
-     並びは、社員（いつも先）→ アルバイト。どちらも「設定」の「担当者」に並んでいる順 */
+     並びは、社員（いつも先。「設定」の「担当者」に並んでいる順）→ アルバイト（あいうえお順） */
   var NO_STAFF = { 'ホームページ': true, 'アプリ': true, '直接来店': true };
   function staffGroups() {
-    var emp = st.conf.staff || [], pt = (st.conf.parttime || []).filter(function (n) { return emp.indexOf(n) < 0; });
+    var emp = st.conf.staff || [], pt = D.sortPart((st.conf.parttime || []).filter(function (n) { return emp.indexOf(n) < 0; }), st.conf.partReads);
     return { emp: emp, pt: pt, gone: f.staff && emp.indexOf(f.staff) < 0 && pt.indexOf(f.staff) < 0 ? [f.staff] : [] };   // gone：前に選んだが、いまは一覧に無い人
   }
   function needStaff() { return !NO_STAFF[f.route]; }

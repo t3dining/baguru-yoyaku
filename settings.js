@@ -1,5 +1,5 @@
 /* 設定：席（名前・人数・種類・グループ・並び・配置図）と、基本（確保時間・表示する時間・キーワード）と、担当者
-   ・担当者：社員とアルバイトを分けて、1人ずつ足す・消す・並べかえる。押すとすぐ受け口へ保存する（★シートには書かず、受け口のプロパティに置く。予約の「担当」も、シートには番号で入る）
+   ・担当者：社員は足す・消す・並べかえる。アルバイトは足すと、よみのあいうえお順に自動で並ぶ。押すとすぐ受け口へ保存する（★シートには書かず、受け口のプロパティに置く。予約の「担当」も、シートには番号で入る）
    ・席を直したら「席を保存する」で受け口へ。配置図の席は、「編集」を押したあとだけドラッグで動かせる（触っただけで動かないように）
    ・ほかの受け方（ホームページの受付時間・組数・休みの日・知らせるメール）は、スプレッドシートのタブ「設定」で変える */
 (function () {
@@ -108,12 +108,12 @@
       case 'conf': return saveConf(b);
       case 'stf-add': return addStaff();
       case 'stf-as': addAs = b.dataset.v; var typed = $('s-stf-new').value; $('set-staff').innerHTML = staffHtml(); $('s-stf-new').value = typed; return;
-      case 'stf-up': return moveStaff(b.dataset.g, Number(b.dataset.i), -1);
-      case 'stf-down': return moveStaff(b.dataset.g, Number(b.dataset.i), 1);
+      case 'stf-up': return moveStaff(Number(b.dataset.i), -1);
+      case 'stf-down': return moveStaff(Number(b.dataset.i), 1);
       case 'stf-del':
-        var c = staffCopy(), who = c[b.dataset.g][Number(b.dataset.i)];
+        var c = staffCopy(), who = b.dataset.n;
         return D.ask({ title: who + ' を担当者から外します', text: 'これまでの予約に入っている担当者の名前は、そのまま残ります。', ok: '外す', danger: true })
-          .then(function (y) { if (y) { c[b.dataset.g].splice(Number(b.dataset.i), 1); saveStaff(c.staff, c.parttime, who + ' を外しました'); } });
+          .then(function (y) { if (y) { c[b.dataset.g] = c[b.dataset.g].filter(function (n) { return n !== who; }); delete c.partReads[who]; saveStaff(c, who + ' を外しました'); } });
       case 'sound': D.$('b-sound').click(); return render();
       case 'logout': return D.$('b-logout').click();
     }
@@ -151,51 +151,61 @@
   }
   function err(id, text) { var m = $(id); m.textContent = text; m.hidden = false; }
 
-  /* ---------- 担当者（予約登録で選ぶ名前）。社員とアルバイトを分けて、1人ずつ足す・消す・並べかえる。押すとすぐ保存 ---------- */
+  /* ---------- 担当者（予約登録で選ぶ名前）。社員は1人ずつ足す・消す・並べかえる。アルバイトは足すと、あいうえお順に自動で並ぶ。押すとすぐ保存 ---------- */
   var addAs = 'staff';   // 足す先：staff（社員）か parttime（アルバイト）
+  var KANA_ONLY = /^[\u3041-\u3096\u30a1-\u30f6\u30fc\s\u3000]+$/;
+  function partList() { return D.sortPart(st.conf.parttime || [], st.conf.partReads); }
   function staffRows(key) {
-    var list = st.conf[key] || [];
+    var list = key === 'parttime' ? partList() : st.conf[key] || [], reads = st.conf.partReads || {};
     if (!list.length) return '<p class="empty">まだ入っていません。</p>';
-    var btn = function (act, i, text, label, off) { return '<button type="button" class="btn small" data-s="' + act + '" data-g="' + key + '" data-i="' + i + '" aria-label="' + label + '"' + (off ? ' disabled' : '') + '>' + text + '</button>'; };
+    var btn = function (act, i, text, label, off) { return '<button type="button" class="btn small" data-s="' + act + '" data-i="' + i + '" aria-label="' + label + '"' + (off ? ' disabled' : '') + '>' + text + '</button>'; };
     return '<ul class="stf-list">' + list.map(function (n, i) {
-      return '<li><span class="stf-name">' + esc(n) + '</span>' + btn('stf-up', i, '↑', '上へ', !i) + btn('stf-down', i, '↓', '下へ', i === list.length - 1)
-        + '<button type="button" class="btn small line-ember" data-s="stf-del" data-g="' + key + '" data-i="' + i + '">消す</button></li>';
+      var read = key === 'parttime' && reads[n] && reads[n] !== n ? '<small>' + esc(reads[n]) + '</small>' : '';
+      return '<li><span class="stf-name">' + esc(n) + read + '</span>' + (key === 'staff' ? btn('stf-up', i, '↑', '上へ', !i) + btn('stf-down', i, '↓', '下へ', i === list.length - 1) : '')
+        + '<button type="button" class="btn small line-ember" data-s="stf-del" data-g="' + key + '" data-n="' + esc(n) + '">消す</button></li>';
     }).join('') + '</ul>';
   }
   function staffHtml() {
     var seg = function (v, t) { return '<button type="button" class="seg' + (addAs === v ? ' on' : '') + '" data-s="stf-as" data-v="' + v + '">' + t + '</button>'; };
-    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話など）に選ぶ名前です。予約登録では、社員がいつも先に並び、そのあとにアルバイトが並びます。どちらも、ここに並んでいる順です。1人でもいると、予約登録で必ず選ぶようになります。</p>'
+    return '<h2>担当者</h2><p class="muted">お店で予約を入れるとき（電話など）に選ぶ名前です。予約登録では、社員がいつも先に並び、そのあとにアルバイトがあいうえお順に並びます。1人でもいると、予約登録で必ず選ぶようになります。</p>'
       + '<h3>社員</h3>' + staffRows('staff') + '<h3>アルバイト</h3>' + staffRows('parttime')
       + '<h3>名前を足す</h3><div class="stf-add"><div class="segs">' + seg('staff', '社員') + seg('parttime', 'アルバイト') + '</div>'
       + '<input type="text" id="s-stf-new" maxlength="20" placeholder="名前を入れる" autocomplete="off" enterkeyhint="done">'
-      + '<button type="button" class="btn dark" data-s="stf-add">＋ 足す</button></div><p class="err" id="stf-err" hidden></p>';
+      + (addAs === 'parttime' ? '<input type="text" id="s-stf-read" maxlength="40" placeholder="よみ（カタカナ）" autocomplete="off" enterkeyhint="done">' : '')
+      + '<button type="button" class="btn dark" data-s="stf-add">＋ 足す</button></div>'
+      + (addAs === 'parttime' ? '<p class="muted">よみで、あいうえお順に並びます。名前がカタカナかひらがななら、よみは要りません。</p>' : '') + '<p class="err" id="stf-err" hidden></p>';
   }
-  function saveStaff(staff, parttime, okText) {
+  function saveStaff(c, okText) {
     var sec = $('set-staff');
     sec.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
-    return D.post({ action: 'saveConf', conf: { staff: staff, parttime: parttime } }).then(function (res) {
+    return D.post({ action: 'saveConf', conf: { staff: c.staff, parttime: D.sortPart(c.parttime, c.partReads), partReads: c.partReads } }).then(function (res) {
       st.conf = res.conf; sec.innerHTML = staffHtml(); D.toast(esc(okText));
     }).catch(function (e) {
       sec.innerHTML = staffHtml();
       err('stf-err', '保存できませんでした：' + D.errText(e));
     });
   }
-  function staffCopy() { return { staff: (st.conf.staff || []).slice(), parttime: (st.conf.parttime || []).slice() }; }
+  function staffCopy() { return { staff: (st.conf.staff || []).slice(), parttime: (st.conf.parttime || []).slice(), partReads: Object.assign({}, st.conf.partReads) }; }
   function addStaff() {
-    var n = $('s-stf-new').value.replace(/[,、]/g, ' ').trim(), c = staffCopy();
+    var n = $('s-stf-new').value.replace(/[,、]/g, ' ').trim(), c = staffCopy(), rd = $('s-stf-read'), read = rd ? D.kata(rd.value.trim()) : '';
     if (!n) return err('stf-err', '名前を入れてください。');
     if (c.staff.concat(c.parttime).indexOf(n) >= 0) return err('stf-err', '「' + n + '」はもう入っています。');
+    if (addAs === 'parttime') {
+      if (read && !KANA_ONLY.test(read)) return err('stf-err', 'よみはカタカナで入れてください。');
+      if (!read && !KANA_ONLY.test(n)) return err('stf-err', 'あいうえお順に並べるので、よみを入れてください。');
+      if (read) c.partReads[n] = read;
+    }
     c[addAs].push(n);
-    saveStaff(c.staff, c.parttime, n + ' を' + (addAs === 'staff' ? '社員' : 'アルバイト') + 'に足しました');
+    saveStaff(c, n + ' を' + (addAs === 'staff' ? '社員' : 'アルバイト') + 'に足しました');
   }
-  /** 1つ上か下へ動かす（動かした順が、予約登録の並びになる） */
-  function moveStaff(key, i, by) {
-    var c = staffCopy(), who = c[key].splice(i, 1)[0];
-    c[key].splice(i + by, 0, who);
-    saveStaff(c.staff, c.parttime, who + ' を動かしました');
+  /** 社員を1つ上か下へ動かす（動かした順が、予約登録の並びになる） */
+  function moveStaff(i, by) {
+    var c = staffCopy(), who = c.staff.splice(i, 1)[0];
+    c.staff.splice(i + by, 0, who);
+    saveStaff(c, who + ' を動かしました');
   }
   box.addEventListener('keydown', function (e) {
-    if (e.target.id === 's-stf-new' && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addStaff(); }   // 日本語の変換を決めるときの Enter では足さない
+    if ((e.target.id === 's-stf-new' || e.target.id === 's-stf-read') && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addStaff(); }   // 日本語の変換を決めるときの Enter では足さない
   });
 
   /* 配置図の席をドラッグで動かす */

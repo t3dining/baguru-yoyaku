@@ -75,6 +75,11 @@
   D.tableNames = function (ids) { return ids.map(function (id) { var t = D.table(id); return t ? t.name : id; }).join('・'); };
   /** ひらがな → カタカナ */
   D.kata = function (s) { return String(s || '').replace(/[\u3041-\u3096]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) + 96); }); };
+  /** アルバイトの名前を、あいうえお順に並べる（よみがあれば、よみで。ひらがなとカタカナは同じに見る） */
+  D.sortPart = function (list, reads) {
+    var c = new Intl.Collator('ja'), key = function (n) { return D.kata((reads && reads[n]) || n); };
+    return list.slice().sort(function (a, b) { return c.compare(key(a), key(b)); });
+  };
   /** 画面に出す名前：カタカナのフルネームがあれば、それを出す（ネット予約は kana にカタカナ、name に漢字が入る） */
   D.name = function (r) { return D.kata(r.kana).trim() || r.name || (r.route === '直接来店' ? '直接来店' : '（お名前なし）'); };
   D.isPhone = function () { return window.matchMedia('(max-width: 760px)').matches; };
