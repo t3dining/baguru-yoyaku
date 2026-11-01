@@ -67,7 +67,7 @@
   }
   function card(o, now) {
     var fee = o.kind === 'delivery' ? (o.fee != null ? '　配達料 ' + yen(o.fee) : (o.meals < freeMin() ? '　配達料は要相談' : '　配達無料')) : '';
-    return '<article class="to-card k-' + o.kind + ' s-' + o.status + (o.status === 'new' || o.status === 'request' ? ' is-new' : '') + '">'
+    return '<article class="to-card k-' + o.kind + ' s-' + o.status + (o.status === 'new' || o.status === 'request' ? ' is-new' : '') + '" data-order="' + esc(o.id) + '">'
       + '<div class="to-head"><b class="to-no">' + (isReq(o) ? '申請 ' : 'No.') + esc(noOf(o)) + '</b>'
       + '<span class="to-kind">' + esc(KIND[o.kind] || '') + '</span><span class="to-route">' + esc(o.route || 'アプリ') + '</span>'
       + '<span class="to-st">' + esc(statusLabel(o, now)) + '</span></div>'
@@ -118,6 +118,25 @@
   };
   setInterval(function () { if (st.today && !document.hidden) { D.checkOrders(); if (st.view === 'takeout') render(); } }, 30000);   // 「あと○分」を進める
   $('orderbar-go').addEventListener('click', function () { D.show('takeout'); });
+
+  /* ---------- テーブル管理の「今日の予約」に出す分（floor.js） ----------
+     今日受け取る、時間を指定した注文（予約注文）。「できしだい」は予約ではないので出さない。申請中は、予約のリクエストと同じく出さない。取り消し・お断りも出さない */
+  var TODAY = { new: true, accepted: true, ready: true, done: true };
+  D.todayOrders = function () {
+    return st.orders.filter(function (o) { return TODAY[o.status] && !o.asap && msOf(o) && D.ymdOf(msOf(o)) === st.today; });
+  };
+  D.orderTime = function (o) { return D.clock(msOf(o)); };
+  D.orderLine = function (o) {
+    return '<button type="button" class="tl tl-order k-' + esc(o.kind) + '" data-order="' + esc(o.id) + '"><span class="tl-head"><span class="to-kind">' + esc(KIND[o.kind] || 'テイクアウト') + '</span><span class="to-st">' + esc(statusLabel(o, Date.now())) + '</span></span>'
+      + '<span class="tl-name">' + esc(o.name || '（お名前なし）') + ' 様' + (o.meals ? '　' + esc(mealsOf(o)) : '') + '</span>'
+      + '<span class="tl-sub">' + esc(D.orderTime(o)) + ' ' + (o.kind === 'delivery' ? 'お届け' : '受け取り') + '　No.' + esc(noOf(o)) + '</span></button>';
+  };
+  /** 注文のところを開く（予約ボードでは見るだけ） */
+  D.openOrder = function (id) {
+    D.show('takeout');
+    var c = [].filter.call(box.querySelectorAll('[data-order]'), function (x) { return x.dataset.order === id; })[0];
+    if (c) c.scrollIntoView({ block: 'center' });
+  };
 
   D.views.takeout = { render: render, enter: function () { $('orderbar').hidden = true; } };
 })();

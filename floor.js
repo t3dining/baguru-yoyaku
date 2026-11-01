@@ -1,7 +1,7 @@
 /* テーブル管理（今日だけ）
    ・席の配置図に、いまの様子を出す：空き＝白、着席中＝緑（確保時間の残り15分でオレンジ、過ぎたら赤）、次の予約の時刻を吹き出しで
    ・空いている席を押す → 人数の窓 →「直接来店」か「予約登録」。座っている席を押す → 右の「席情報」（退店・来店取消）
-   ・右の「今日の予約」は、直接来店・来店済みを除いて見られる
+   ・右の「今日の予約」は、直接来店・来店済みを除いて見られる。テイクアウトの予約注文（時間を指定した注文）も、時刻の順に一緒に出す。押すとテイクアウトの画面へ（見るだけ）
    ・「臨時（席なしで直接来店）」のボタンは、2026-10-30 に外した（ユーザーの指示） */
 (function () {
   'use strict';
@@ -58,19 +58,24 @@
   function renderSide(rows) {
     var list = rows.filter(function (r) { return !D.HIDDEN[r.status] && r.status !== ST.REQ; });
     var shown = list.filter(function (r) { return !(side.noWalk && r.route === '直接来店') && !(side.noCame && (r.status === ST.IN || r.status === ST.OUT)); });
+    var orders = D.todayOrders ? D.todayOrders() : [];   // テイクアウトの予約注文（takeout.js）
     $('floor-tabs').innerHTML = '<button type="button" data-tab="seat" class="' + (side.tab === 'seat' ? 'on' : '') + '">席情報</button>'
-      + '<button type="button" data-tab="today" class="' + (side.tab === 'today' ? 'on' : '') + '">今日の予約（' + list.filter(function (r) { return r.route !== '直接来店'; }).length + '）</button>';
+      + '<button type="button" data-tab="today" class="' + (side.tab === 'today' ? 'on' : '') + '">今日の予約（' + (list.filter(function (r) { return r.route !== '直接来店'; }).length + orders.length) + '）</button>';
     var h = '';
     if (side.tab === 'today') {
       h = '<div class="side-filter"><label><input type="checkbox" data-flt="noWalk"' + (side.noWalk ? ' checked' : '') + '>直接来店を除く</label>'
         + '<label><input type="checkbox" data-flt="noCame"' + (side.noCame ? ' checked' : '') + '>来店済みを除く</label></div>';
       var last = '';
-      h += shown.length ? shown.map(function (r) {
-        var head = r.start !== last ? '<p class="tl-time">' + esc(r.start) + '</p>' : '';
-        last = r.start;
-        return head + '<button type="button" class="tl" data-id="' + esc(r.id) + '">' + D.statusBadge(r.status)
+      var items = shown.map(function (r) {
+        return { t: r.start, html: '<button type="button" class="tl" data-id="' + esc(r.id) + '">' + D.statusBadge(r.status)
           + '<span class="tl-name">' + esc(D.name(r)) + (r.name ? ' 様' : '') + '　' + r.people + '名 ' + D.icons(r) + '</span>'
-          + '<span class="tl-sub">' + esc(r.start + '〜' + D.hm(D.span(r)[1])) + '　' + esc(r.tables.length ? D.tableNames(r.tables) : '未割り当て') + '</span></button>';
+          + '<span class="tl-sub">' + esc(r.start + '〜' + D.hm(D.span(r)[1])) + '　' + esc(r.tables.length ? D.tableNames(r.tables) : '未割り当て') + '</span></button>' };
+      }).concat(orders.filter(function (o) { return !(side.noCame && o.status === 'done'); }).map(function (o) { return { t: D.orderTime(o), html: D.orderLine(o) }; }));
+      items.sort(function (a, b) { return a.t < b.t ? -1 : a.t > b.t ? 1 : 0; });
+      h += items.length ? items.map(function (x) {
+        var head = x.t !== last ? '<p class="tl-time">' + esc(x.t) + '</p>' : '';
+        last = x.t;
+        return head + x.html;
       }).join('') : '<p class="empty">今日の予約はありません。</p>';
     } else {
       var t = side.sel && D.table(side.sel);
@@ -94,7 +99,7 @@
     var dt = e.target.closest('.dt');
     if (dt) return D.onBookingClick(e);
     var tl = e.target.closest('.tl');
-    if (tl) return D.openBooking(tl.dataset.id);
+    if (tl) return tl.dataset.order ? D.openOrder(tl.dataset.order) : D.openBooking(tl.dataset.id);
     var fb = e.target.closest('[data-f]');
     if (fb) {
       var now = D.nowMin();

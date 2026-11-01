@@ -411,6 +411,8 @@ dl.conf dd{margin:0; font-weight:700}
 .tl{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%; padding:8px 4px; border:0; border-bottom:1px solid var(--line); background:none; text-align:left}
 .tl-name{font-weight:900}
 .tl-sub{font-size:12.5px; color:var(--muted)}
+.tl-head{display:flex; align-items:center; gap:6px}
+.tl-order .to-st{margin-left:0}
 .seat-h{font-family:var(--en); font-size:26px; font-weight:600; margin-bottom:6px}
 .seat-h small{font-family:var(--jp); font-size:13px; color:var(--muted); margin-left:8px}
 .seat-free{font-weight:900; color:var(--muted); margin:10px 0}
