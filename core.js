@@ -157,6 +157,8 @@
       checkNew();
       if (D.checkOrders) D.checkOrders();
       if (firstTime) D.show(st.view);
+      // 「設定」は開いたときだけ描くので、先に覚えていた中身で描いた分（担当者の名前が入っていない）を描き直す
+      if (wasWarm && st.view === 'settings') D.views.settings.enter();
       // 先に出していたあいだに、ほかの日にち・予約リストへ移っていたら、その分も読む
       if (wasWarm) { var rg2 = D.range(); if (rg2.from < r.from || rg2.to > r.to) D.load(); }
     }).catch(function (e) {

@@ -160,8 +160,8 @@
     if (!list.length) return '<p class="empty">まだ入っていません。</p>';
     var btn = function (act, i, text, label, off) { return '<button type="button" class="btn small" data-s="' + act + '" data-i="' + i + '" aria-label="' + label + '"' + (off ? ' disabled' : '') + '>' + text + '</button>'; };
     return '<ul class="stf-list">' + list.map(function (n, i) {
-      var read = key === 'parttime' && reads[n] && reads[n] !== n ? '<small>' + esc(reads[n]) + '</small>' : '';
-      return '<li><span class="stf-name">' + esc(n) + read + '</span>' + (key === 'staff' ? btn('stf-up', i, '↑', '上へ', !i) + btn('stf-down', i, '↓', '下へ', i === list.length - 1) : '')
+      var read = key === 'parttime' ? '<input type="text" class="stf-read" data-n="' + esc(n) + '" maxlength="40" value="' + esc(reads[n] || '') + '" placeholder="よみ（カタカナ）" aria-label="' + esc(n) + ' のよみ" autocomplete="off" enterkeyhint="done">' : '';
+      return '<li><span class="stf-name">' + esc(n) + '</span>' + read + (key === 'staff' ? btn('stf-up', i, '↑', '上へ', !i) + btn('stf-down', i, '↓', '下へ', i === list.length - 1) : '')
         + '<button type="button" class="btn small line-ember" data-s="stf-del" data-g="' + key + '" data-n="' + esc(n) + '">消す</button></li>';
     }).join('') + '</ul>';
   }
@@ -198,6 +198,14 @@
     c[addAs].push(n);
     saveStaff(c, n + ' を' + (addAs === 'staff' ? '社員' : 'アルバイト') + 'に足しました');
   }
+  /** 登録したアルバイトのよみを直す。変えて欄を離れると保存して、あいうえお順に並べ直す */
+  box.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('stf-read')) return;
+    var n = e.target.dataset.n, read = D.kata(e.target.value.trim()), c = staffCopy();
+    if (read && !KANA_ONLY.test(read)) return err('stf-err', 'よみはカタカナで入れてください。');
+    if (read) c.partReads[n] = read; else delete c.partReads[n];
+    saveStaff(c, n + ' のよみを保存しました');
+  });
   /** 社員を1つ上か下へ動かす（動かした順が、予約登録の並びになる） */
   function moveStaff(i, by) {
     var c = staffCopy(), who = c.staff.splice(i, 1)[0];
@@ -205,6 +213,7 @@
     saveStaff(c, who + ' を動かしました');
   }
   box.addEventListener('keydown', function (e) {
+    if (e.target.classList.contains('stf-read') && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); e.target.blur(); return; }
     if ((e.target.id === 's-stf-new' || e.target.id === 's-stf-read') && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addStaff(); }   // 日本語の変換を決めるときの Enter では足さない
   });
 
