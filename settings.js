@@ -1,12 +1,12 @@
 /* 設定：席（名前・人数・種類・グループ・並び・配置図）と、基本（確保時間・表示する時間・キーワード）と、担当者
    ・担当者：社員とアルバイトを分けて、1人ずつ足す・消す・並べかえる。押すとすぐ受け口へ保存する（★シートには書かず、受け口のプロパティに置く。予約の「担当」も、シートには番号で入る）
-   ・席を直したら「席を保存する」で受け口へ。配置図の席はドラッグで動かせる
+   ・席を直したら「席を保存する」で受け口へ。配置図の席は、「編集」を押したあとだけドラッグで動かせる（触っただけで動かないように）
    ・ほかの受け方（ホームページの受付時間・組数・休みの日・知らせるメール）は、スプレッドシートのタブ「設定」で変える */
 (function () {
   'use strict';
   var D = window.D, esc = D.esc, st = D.st, $ = D.$;
   var box = $('v-settings');
-  var T = { list: null, dirty: false, drag: null, scale: 1 };
+  var T = { list: null, dirty: false, drag: null, scale: 1, edit: false };
   var KINDS = ['テーブル', 'カウンター', '座敷'];
 
   function init() { T.list = st.tables.map(function (t) { return Object.assign({}, t); }); T.dirty = false; }
@@ -26,13 +26,18 @@
   function floorHtml() {
     var maxX = 0, maxY = 0;
     T.list.forEach(function (t) { maxX = Math.max(maxX, t.x + t.w); maxY = Math.max(maxY, t.y + t.h); });
-    var cw = maxX + 60, ch = maxY + 60, aw = Math.min(box.clientWidth - 40, 1100) || 800;
+    var cw = maxX + 60, ch = maxY + 60, aw = box.clientWidth > 40 ? Math.min(box.clientWidth - 40, 1100) : 800;   // 幅が取れないときは 800 で描く
     T.scale = Math.min(1, aw / cw);
-    return '<div class="floor-scale" style="width:' + (cw * T.scale) + 'px;height:' + (ch * T.scale) + 'px"><div class="floor-canvas edit" style="width:' + cw + 'px;height:' + ch + 'px;transform:scale(' + T.scale + ')">'
+    return '<div class="floor-scale" style="width:' + (cw * T.scale) + 'px;height:' + (ch * T.scale) + 'px"><div class="floor-canvas' + (T.edit ? ' edit' : '') + '" style="width:' + cw + 'px;height:' + ch + 'px;transform:scale(' + T.scale + ')">'
       + T.list.map(function (t, i) {
         return '<div class="ft k-' + (t.kind === 'カウンター' ? 'counter' : 'table') + (t.show ? '' : ' hide') + '" data-i="' + i + '" style="left:' + t.x + 'px;top:' + t.y + 'px;width:' + t.w + 'px;height:' + t.h + 'px">'
           + '<span class="ft-box"><span class="ft-cap">' + t.cap + '名</span></span><span class="ft-name">' + esc(t.name) + '</span></div>';
       }).join('') + '</div></div>';
+  }
+
+  function floorHead() {
+    return '<div class="set-floor-head"><h3>配置図（テーブル管理）</h3><button type="button" class="btn small' + (T.edit ? ' dark' : '') + '" data-s="floor-edit" aria-pressed="' + T.edit + '">' + (T.edit ? '編集を終わる' : '編集') + '</button></div>'
+      + '<p class="muted">' + (T.edit ? '席をドラッグして動かします。動かしたら「編集を終わる」のあと、下の「席を保存する」を押します。' : '席を動かすときは「編集」を押します。') + '</p>';
   }
 
   function render() {
@@ -43,7 +48,7 @@
       + '<div class="trw head"><span></span><span>名前</span><span>人数</span><span>種類</span><span>グループ</span><span>使う</span><span></span></div>'
       + '<div id="set-tables">' + tableRows() + '</div>'
       + '<button type="button" class="btn" data-s="add">＋ 席を足す</button>'
-      + '<h3>配置図（テーブル管理）</h3><p class="muted">席をドラッグすると動かせます。</p><div class="set-floor" id="set-floor">' + floorHtml() + '</div>'
+      + '<div id="set-floor-head">' + floorHead() + '</div><div class="set-floor' + (T.edit ? ' editing' : '') + '" id="set-floor">' + floorHtml() + '</div>'
       + '<p class="err" id="set-err" hidden></p>'
       + '<div class="set-acts"><button type="button" class="btn" data-s="reset"' + (T.dirty ? '' : ' disabled') + '>直す前に戻す</button><button type="button" class="btn ember big" data-s="save"' + (T.dirty ? '' : ' disabled') + '>席を保存する</button></div></section>'
       + '<section class="set-sec"><h2>基本</h2><div class="fg">'
@@ -92,7 +97,13 @@
         var maxY = T.list.reduce(function (m, t) { return Math.max(m, t.y + t.h); }, 0);
         T.list.push({ id: '', name: '新しい席', cap: 4, kind: 'テーブル', group: '新しい席', x: 30, y: maxY + 50, w: 159, h: 132, show: true });
         return redrawTables();
-      case 'reset': init(); return render();
+      case 'floor-edit':
+        T.edit = !T.edit;
+        $('set-floor-head').innerHTML = floorHead();
+        $('set-floor').classList.toggle('editing', T.edit);
+        $('set-floor').innerHTML = floorHtml();
+        return;
+      case 'reset': T.edit = false; init(); return render();
       case 'save': return saveTables(b);
       case 'conf': return saveConf(b);
       case 'stf-add': return addStaff();
@@ -126,7 +137,7 @@
       return { id: id, name: t.name.trim(), cap: t.cap, kind: t.kind, group: (t.group || '').trim() || t.name.trim(), x: t.x, y: t.y, w: t.w, h: t.h, show: t.show };
     });
     D.post({ action: 'saveTables', tables: out }).then(function (res) {
-      st.tables = res.tables; init(); render(); D.toast('席を保存しました');
+      st.tables = res.tables; T.edit = false; init(); render(); D.toast('席を保存しました');
     }).catch(function (e) { b.disabled = false; b.textContent = '席を保存する'; err('set-err', '保存できませんでした：' + D.errText(e)); });
   }
   function saveConf(b) {
@@ -212,5 +223,5 @@
   box.addEventListener('touchmove', function (e) { if (T.drag) e.preventDefault(); }, { passive: false });
 
   // 読み直すたびに描き直すと、入れている途中の字が消えるので、この画面は開いたときだけ描く
-  D.views.settings = { render: function () { if (!box.children.length) render(); }, enter: function () { if (!T.dirty) init(); box.innerHTML = ''; render(); } };
+  D.views.settings = { render: function () { if (!box.children.length) render(); }, enter: function () { T.edit = false; if (!T.dirty) init(); box.innerHTML = ''; render(); } };
 })();

@@ -474,10 +474,13 @@ dl.conf dd{margin:0; font-weight:700}
 .trw .mv button{width:32px; height:36px; border:1px solid var(--line2); background:#fff; border-radius:4px}
 .trw .mv button:disabled{opacity:.3}
 .set-floor{background:#fbf8f3; border:1px solid var(--line); border-radius:var(--r); padding:10px; overflow:auto}
+.set-floor.editing{border:2px solid var(--ember); padding:9px}   /* 編集中：席を動かせる */
+.set-floor-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:18px}
+.set-floor-head h3{margin:0}
+.set-floor .ft.hide{opacity:.35}
 .floor-canvas.edit .ft{cursor:grab; touch-action:none}
 .floor-canvas.edit .ft.dragging{z-index:5; cursor:grabbing}
 .floor-canvas.edit .ft.dragging .ft-box{box-shadow:0 10px 24px rgba(0,0,0,.3)}
-.floor-canvas.edit .ft.hide{opacity:.35}
 .set-acts{display:flex; justify-content:flex-end; gap:8px; margin-top:12px; flex-wrap:wrap}
 .set-acts.left{justify-content:flex-start}
 .set-list{margin:0; padding-left:1.2em; font-size:14px; line-height:1.9}
