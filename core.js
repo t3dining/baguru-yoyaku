@@ -255,9 +255,20 @@
 
   /* ---------- 新しいリクエストの知らせ（赤い帯・音） ---------- */
   var audio = null, told = 0;
+  function audioOn() {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state !== 'running' && audio.resume) audio.resume();
+    audio.onstatechange = paintSoundGate;
+  }
+  /** ブラウザの決まりで、開き直すと、画面を1回さわるまで音が鳴らない。「音 オン」のときは、鳴らない間は上の帯で知らせる */
+  function paintSoundGate() { $('soundgate').hidden = !(st.sound && st.today && !(audio && audio.state === 'running')); }
+  D.paintSoundGate = paintSoundGate;
+  ['click', 'touchend'].forEach(function (ev) {
+    document.addEventListener(ev, function () { if (st.sound && !(audio && audio.state === 'running')) { try { audioOn(); } catch (e) {} setTimeout(paintSoundGate, 200); } }, true);
+  });
   D.beep = function () {
     try {
-      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      audioOn();
       [0, 0.28].forEach(function (t) {
         var o = audio.createOscillator(), g = audio.createGain();
         o.type = 'sine'; o.frequency.value = 880;
@@ -269,15 +280,26 @@
       });
     } catch (e) {}
   };
+  /** 当日のネット予約：承認かお断りをするまで、帯を出したままにして、20秒ごとに音を鳴らす（音 オンの端末だけ） */
+  function todayReq() { return st.pending.filter(function (r) { return r.date === st.today; }).sort(function (a, b) { return a.start.localeCompare(b.start); }); }
+  setInterval(function () { if (st.today && !st.warm && st.sound && todayReq().length) D.beep(); }, 20000);
+
   function checkNew() {
     var n = st.pending.filter(function (r) { return r.createdAt > st.seen; });
     ['badge-req', 'badge-req2'].forEach(function (id) { var b = $(id); b.textContent = st.pending.length; b.hidden = !st.pending.length; });
-    if (!n.length) { $('newbar').hidden = true; told = 0; return; }
+    paintSoundGate();
+    var td = todayReq();
+    if (n.length && st.sound && n.length > told) D.beep();
+    told = n.length;
+    if (td.length) {
+      $('newbar-text').textContent = '★当日の予約のリクエストが ' + td.length + '件 あります（' + td[0].start + ' ' + td[0].people + '名' + (td.length > 1 ? ' 他' : '') + '）。承認かお断りをしてください';
+      $('newbar').hidden = false;
+      return;
+    }
+    if (!n.length) { $('newbar').hidden = true; return; }
     var latest = n[n.length - 1];
     $('newbar-text').textContent = 'ホームページ・アプリから新しいリクエストが ' + n.length + '件（' + A.md(latest.date) + ' ' + latest.start + ' ' + latest.people + '名' + (n.length > 1 ? ' 他' : '') + '）';
     $('newbar').hidden = false;
-    if (n.length > told && st.sound) D.beep();
-    told = n.length;
   }
   D.checkNew = checkNew;
   D.markSeen = function () {

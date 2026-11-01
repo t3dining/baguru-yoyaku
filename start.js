@@ -49,6 +49,7 @@
   $('b-sound').addEventListener('click', function () {
     st.sound = !st.sound; D.set(D.KEY.sound, st.sound ? '1' : '0'); paintSound();
     if (st.sound) D.beep();
+    D.paintSoundGate();
   });
   /* 更新（上の帯の右）：ページごと読み直す（公開し直した新しい画面も、いまの予約も入る。合言葉はそのまま）。
      ホーム画面に置いたときは、ブラウザの読み直しのボタンが無いので */
