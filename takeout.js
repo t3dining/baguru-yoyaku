@@ -14,6 +14,13 @@
   var LIVE = { request: true, new: true, accepted: true, ready: true };
   // 操作する画面（バグるOrder受付）。この Mac の確認用の画面では、同じフォルダの Order受付
   var ORDER_APP = location.hostname === 't3dining.github.io' ? 'https://t3dining.github.io/baguru-app/order.html' : '../../バグるOrder受付/order.html';
+  /** フォルダーアプリから開いたときは、アプリの外へ出ないよう同じ窓で開き、戻り先の印を渡す。お店のタブレットは今までどおり別の窓 */
+  function orderLink() {
+    var inApp = false;
+    try { inApp = sessionStorage.getItem('baguru.yoyaku.owner') === '1'; } catch (e) {}
+    if (!inApp) return '<a class="btn dark" href="' + esc(ORDER_APP) + '" target="_blank" rel="noopener">Order受付を開く</a>';
+    return '<a class="btn dark" href="' + esc(ORDER_APP + '?from=owner' + (/[?&]hub=staff(&|$)/.test(location.search) ? '&hub=staff' : '')) + '">Order受付を開く</a>';
+  }
   st.orders = [];
 
   // 店舗アプリの決め（js/data.js の TAKEOUT）。読めないときはこの値
@@ -90,7 +97,7 @@
     var on = st.conf.takeout !== false;
     box.innerHTML = '<div class="to-tools"><span class="to-state ' + (on ? 'on' : 'off') + '"><i></i>' + (on ? 'お客さまのアプリの注文を受け付けています' : 'お客さまのアプリの注文を止めています') + '</span>'
       + '<span class="to-only">見るだけの画面です。受け付ける・できあがり・お渡し・取り消し・申請の承認・電話の注文は、<b>Order受付</b>で行います</span>'
-      + '<a class="btn dark" href="' + esc(ORDER_APP) + '" target="_blank" rel="noopener">Order受付を開く</a></div>'
+      + orderLink() + '</div>'
       + (req.length ? '<div class="to-req">' + col('配達・大量注文の申請（Order受付で承認すると確定）', req, now, 'wide') + '</div>' : '')
       + '<div class="to-cols">' + col('受付待ち', fresh, now, 'c-new') + col('調理中', cook, now, 'c-cook') + col('できあがり', ready, now, 'c-ready') + '</div>'
       + '<div class="to-more">' + col('受付済み（受け取りの' + cookBefore() + '分前に「調理中」へ）', later, now, 'wide')

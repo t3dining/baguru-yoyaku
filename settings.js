@@ -9,7 +9,7 @@
   var T = { list: null, dirty: false, drag: null, scale: 1, edit: false };
   var KINDS = ['テーブル', 'カウンター', '座敷'];
 
-  function init() { T.list = st.tables.map(function (t) { return Object.assign({}, t); }); T.dirty = false; }
+  function init() { T.list = st.tables.map(function (t) { return Object.assign({}, t); }); T.at = st.tablesAt; T.dirty = false; }   // T.at：直し始めたときの席の版（読み直しで変わらないように控える）
 
   function tableRows() {
     return T.list.map(function (t, i) {
@@ -136,9 +136,16 @@
       if (!id) { id = t.name.trim(); while (used[id]) id += '_'; used[id] = true; }
       return { id: id, name: t.name.trim(), cap: t.cap, kind: t.kind, group: (t.group || '').trim() || t.name.trim(), x: t.x, y: t.y, w: t.w, h: t.h, show: t.show };
     });
-    D.post({ action: 'saveTables', tables: out }).then(function (res) {
-      st.tables = res.tables; T.edit = false; init(); render(); D.toast('席を保存しました');
-    }).catch(function (e) { b.disabled = false; b.textContent = '席を保存する'; err('set-err', '保存できませんでした：' + D.errText(e)); });
+    D.post({ action: 'saveTables', tables: out, expect: T.at }).then(function (res) {
+      st.tables = res.tables; st.tablesAt = res.tablesAt; T.edit = false; init(); render(); D.toast('席を保存しました');
+    }).catch(function (e) {
+      b.disabled = false; b.textContent = '席を保存する';
+      if (e.code === 'conflict' && e.data && e.data.tables) {
+        st.tables = e.data.tables; st.tablesAt = e.data.tablesAt; T.edit = false; init(); render();
+        return err('set-err', '他の端末で席が先に変わっていました。読み直したので、もう一度直してください。');
+      }
+      err('set-err', '保存できませんでした：' + D.errText(e));
+    });
   }
   function saveConf(b) {
     var p = { keep: Number($('s-keep').value), viewFrom: $('s-from').value, viewTo: $('s-to').value, keywords: $('s-kw').value };
@@ -178,11 +185,12 @@
   function saveStaff(c, okText) {
     var sec = $('set-staff');
     sec.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
-    return D.post({ action: 'saveConf', conf: { staff: c.staff, parttime: D.sortPart(c.parttime, c.partReads), partReads: c.partReads } }).then(function (res) {
+    return D.post({ action: 'saveConf', conf: { staff: c.staff, parttime: D.sortPart(c.parttime, c.partReads), partReads: c.partReads, staffAt: st.conf.staffAt } }).then(function (res) {
       st.conf = res.conf; sec.innerHTML = staffHtml(); D.toast(esc(okText));
     }).catch(function (e) {
+      if (e.code === 'conflict' && e.data && e.data.conf) st.conf = e.data.conf;
       sec.innerHTML = staffHtml();
-      err('stf-err', '保存できませんでした：' + D.errText(e));
+      err('stf-err', e.code === 'conflict' ? '他の端末で担当者が先に変わっていました。読み直したので、もう一度お願いします。' : '保存できませんでした：' + D.errText(e));
     });
   }
   function staffCopy() { return { staff: (st.conf.staff || []).slice(), parttime: (st.conf.parttime || []).slice(), partReads: Object.assign({}, st.conf.partReads) }; }

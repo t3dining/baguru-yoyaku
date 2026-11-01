@@ -6,6 +6,9 @@
   'use strict';
   var D = window.D, esc = D.esc, st = D.st, ST = D.ST;
 
+  /** お客さまへのメールが送れていない（送る前に止まったときは「待ち」のまま残る）。承認待ちの受付メールは出さない */
+  function mailStuck(r) { return r.email && r.status !== ST.REQ && (r.mail === '送れなかった' || (r.mail === '待ち' && Date.now() - r.updatedAt > 120000)); }
+
   function actions(r) {
     var b = function (act, label, cls) { return '<button type="button" class="btn ' + (cls || '') + '" data-act="' + act + '">' + label + '</button>'; };
     switch (r.status) {
@@ -33,6 +36,7 @@
       + '<h2 class="dt-name">' + esc(D.name(r)) + (r.name || r.kana ? ' 様' : '') + (r.kana && r.name && r.name !== D.name(r) ? '<small>' + esc(r.name) + '</small>' : '') + '</h2>'
       + custLine
       + '<p class="dt-contact">' + D.telLink(r.tel) + (r.email ? '<span class="mail">' + esc(r.email) + '</span>' : '') + '</p>'
+      + (mailStuck(r) ? '<p class="dt-mailng"><span>★お客さまへの' + (r.status === ST.NO ? 'お断り' : '確定') + 'のメールを送れていません</span><button type="button" class="btn small" data-act="remail">メールを送り直す</button></p>' : '')
       + (r.keywords.length ? '<p class="dt-kw">' + r.keywords.map(function (k) { return '<span>' + esc(k) + '</span>'; }).join('') + '</p>' : '')
       + (r.note ? '<p class="dt-note"><b>ご要望（' + (r.route === 'アプリ' ? 'アプリ' : 'ホームページ') + '）</b>' + esc(r.note) + '</p>' : '')
       + (r.seat && r.seat !== 'どちらでも' ? '<p class="dt-note"><b>席の希望</b>' + esc(r.seat) + '</p>' : '')
@@ -70,6 +74,7 @@
       case 'edit': D.closePanel(); return D.openRegister({ row: r });
       case 'approve': return D.approve(r);
       case 'decline': return D.decline(r);
+      case 'remail': return remail(r);
       case 'cust': D.closePanel(); D.show('customers'); return D.openCustomer(r.cid);
     }
   };
@@ -114,8 +119,18 @@
       .then(function (yes) { if (yes) decide(r, 'お断り'); });
   };
   function $modalLock(on) { if (on) D.$('modal').dataset.lock = '1'; else delete D.$('modal').dataset.lock; }
-  function decide(r, decision, tables, keep) {
-    D.post({ action: 'decide', id: r.id, decision: decision, tables: tables, keep: keep }).then(function (res) {
+  function remail(r) {
+    D.post({ action: 'resendMail', id: r.id }).then(function (res) {
+      D.put(res.row);
+      if (res.mailed) D.toast('メールを送りました');
+      else D.toast('★メールを送れませんでした。お電話でお知らせください：' + D.telLink(r.tel), { warn: true });
+    }).catch(function (e) {
+      if (e.data && e.data.row) D.put(e.data.row);
+      D.toast(e.code === 'already' ? 'メールはもう送ってあります' : e.code === 'busy' ? 'いま送っている途中かもしれません。少しして開き直してください' : '送れませんでした：' + esc(D.errText(e)), { warn: true });
+    });
+  }
+  function decide(r, decision, tables, keep, force) {
+    D.post({ action: 'decide', id: r.id, decision: decision, tables: tables, keep: keep, force: force === true }).then(function (res) {
       $modalLock(false); D.closeModal();
       D.put(res.row);
       var who = esc(D.name(r)) + ' 様（' + esc(D.md(r.date)) + ' ' + esc(r.start) + '）';
@@ -129,6 +144,13 @@
         // 送り直しで2回届いたときは、1回目で済んでいる
         if ((decision === '承認' && row.status !== ST.NO) || (decision === 'お断り' && row.status === ST.NO)) D.toast(esc(D.name(r)) + ' 様を「' + decision + '」にしました');
         else D.toast('他の端末で、先に「' + esc(row.status) + '」になっていました', { warn: true });
+        return;
+      }
+      if (e.code === 'table_taken' && e.data && e.data.taken) {   // 2台が同じ空きを見ていたとき。受け口の最新の台帳で分かった
+        var list = e.data.taken.map(function (x) { return x.tables.join('・') + '：' + x.start + '〜 ' + x.name + ' 様'; }).join('、');
+        D.load();
+        D.ask({ title: '選んだ席に、先に予約が入っていました', text: list + '。同じ席のまま承認しますか？ 席を選び直すときは「やめる」を押してください。', ok: 'このまま承認する' })
+          .then(function (yes) { if (yes) decide(r, decision, tables, keep, true); });
         return;
       }
       D.toast('送れませんでした：' + esc(D.errText(e)), { warn: true });

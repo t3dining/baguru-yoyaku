@@ -142,7 +142,7 @@
       // 読んだ日にちの分は入れかえる（消された・ほかの日に移った予約を残さない）
       Object.keys(st.rows).forEach(function (id) { var x = st.rows[id]; if (x.date >= r.from && x.date <= r.to) delete st.rows[id]; });
       r.rows.forEach(function (x) { st.rows[x.id] = x; });
-      st.pending = r.pending; st.web = r.web; st.tables = r.tables; st.conf = r.conf;
+      st.pending = r.pending; st.web = r.web; st.tables = r.tables; st.tablesAt = r.tablesAt; st.conf = r.conf;
       st.orders = r.orders || [];   // テイクアウトの注文（takeout.js）
       Object.keys(r.days).forEach(function (k) { st.days[k] = r.days[k]; });
       st.loadedAt = r.now;

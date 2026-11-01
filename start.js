@@ -74,7 +74,14 @@
   if (/[?&]from=owner(&|$)/.test(location.search)) { try { sessionStorage.setItem('baguru.yoyaku.owner', '1'); } catch (e) {} }
   if (sget('baguru.yoyaku.owner') === '1') {
     var hub = function () { try { return localStorage.getItem('bg.hub'); } catch (e) { return null; } };
-    var goHome = function () { location.href = sget('bg.owner') || hub() || OWNER_HOME; };
+    // バグるStaff から開いたときは、アドレスの印 hub=staff を見て必ず Staff に戻す（控えが消える・Owner のものになっていると Owner へ落ちるため。2026-11-02 ko-dai さんの報告）。
+    // ★逆向き（印が無ければ Owner に戻す）は入れない。印の無い古いアドレスが開いたままの端末で、Staff の社員が Owner に飛ぶ。staff を含む戻り先は、手元の ?test のアドレスなので残す
+    var STAFF_HOME = 'https://t3dining.github.io/baguru-staff/';
+    var goHome = function () {
+      var to = sget('bg.owner') || hub() || '';
+      if (/[?&]hub=staff(&|$)/.test(location.search) && !/staff/i.test(to)) to = STAFF_HOME;
+      location.href = to || OWNER_HOME;
+    };
     $('login-home').hidden = false;
     $('login-home').addEventListener('click', goHome);
     $('b-home').hidden = false;

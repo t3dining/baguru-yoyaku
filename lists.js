@@ -155,7 +155,7 @@
     histMap = {};
     hist.forEach(function (r) { histMap[r.id] = r; });
     var fld = function (id, label, v, type, max) { return '<div><label for="' + id + '">' + label + '</label><input type="' + (type || 'text') + '" id="' + id + '" maxlength="' + (max || 40) + '" value="' + esc(v || '') + '"></div>'; };
-    var h = '<div class="cust" data-cid="' + esc(c.cid) + '"><div class="dt-head"><b>' + (c.cid ? '顧客 ' + esc(c.cid) : 'お客様を登録') + '</b>'
+    var h = '<div class="cust" data-cid="' + esc(c.cid) + '" data-at="' + esc(c.updatedAt || '') + '"><div class="dt-head"><b>' + (c.cid ? '顧客 ' + esc(c.cid) : 'お客様を登録') + '</b>'
       + (c.cid ? '<span>来店 ' + c.visits + '回' + (c.last ? '・前回 ' + esc(D.md(c.last)) : '') + '</span>' : '')
       + '<button type="button" class="x" data-cu="close" aria-label="閉じる"><svg class="i"><use href="#i-x"/></svg></button></div>'
       + '<div class="fg">' + fld('cu-name', 'お名前', c.name) + fld('cu-kana', 'かな', c.kana) + fld('cu-tel', '電話番号', c.tel, 'tel', 20) + fld('cu-email', 'メール', c.email, 'email', 120)
@@ -184,6 +184,7 @@
     if (b.dataset.cu === 'close') return D.closePanel();
     var p = { cid: box.dataset.cid, name: $('cu-name').value.trim(), kana: $('cu-kana').value.trim(), tel: $('cu-tel').value.trim(), email: $('cu-email').value.trim(),
       caution: $('cu-caution').checked, cautionNote: $('cu-cnote').value.trim(), allergy: $('cu-allergy').value.trim(), anniv: $('cu-anniv').value.trim(), memo: $('cu-memo').value.trim() };
+    if (box.dataset.at) p.expect = Number(box.dataset.at);   // 開いたあとにほかの端末が直していたら、受け口が止める
     b.disabled = true; b.textContent = '保存しています…';
     D.post({ action: 'saveCustomer', customer: p }).then(function (res) {
       D.toast('保存しました（' + esc(res.customer.name) + ' 様）');
