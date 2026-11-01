@@ -366,6 +366,7 @@
     btn.disabled = true; btn.textContent = '送っています…';
     var data = { date: f.date, start: f.start, keep: f.keep, people: f.people, tables: f.tables, name: f.name, kana: f.kana, tel: f.tel,
       email: f.email, route: f.route, keywords: f.keywords, memo: f.memo, dessert: f.dessert, plateMsg: f.dessert ? f.plateMsg : '', status: f.status, cid: f.cid, staff: needStaff() ? f.staff : '' };
+    if (!f.cid && !f.noCust) delete data.cid;   // 指定が無ければ送らない（受け口が電話番号で顧客台帳に結びつける）
     var p = f.id
       ? D.post({ action: 'save', row: Object.assign({ id: f.id }, data), expect: f.expect })
       : D.post({ action: 'save', row: data, rid: rid });
@@ -401,7 +402,7 @@
     if (ds.stf) { f.staff = f.staff === ds.stf ? '' : ds.stf; $('r-staffbox').innerHTML = staffBox(); return; }   // 1人だけ選ぶ（もう一度押すと外す）
     if (ds.pick) {
       var c = found[Number(ds.pick)];
-      f.cid = c.cid; f.cust = c; found = [];
+      f.cid = c.cid; f.cust = c; f.noCust = false; found = [];
       if (!f.sei) { f.name = c.name; f.kana = c.kana; f.useKana = !!c.kana; setParts(); }
       if (!f.tel) f.tel = c.tel;
       return step3();
@@ -414,7 +415,7 @@
       case 'to1': return go(1);
       case 'to2': return go(2);
       case 'to3': return go(3);
-      case 'uncust': f.cid = ''; f.cust = null; return step3();
+      case 'uncust': f.cid = ''; f.cust = null; f.noCust = true; return step3();
       case 'confirm':
         if (!f.people) { go(1); return; }
         if (!f.sei && f.route !== '直接来店') return showErr('苗字を入れてください。');
