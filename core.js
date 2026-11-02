@@ -1,5 +1,6 @@
 /* 予約ボード（お店のタブレット・社員のスマホ）の土台
-   ・受け口（コード.gs）から予約・席・設定を読み、15秒ごとに読み直す（画面が隠れているあいだは止める）
+   ・受け口（コード.gs）から予約・席・設定を読む。3秒ごとに「変わったか」だけを聞き、変わったときに読み直す（画面が隠れているあいだは止める）
+   ・この端末で直したら、すぐ読み直す（受け口に控えができて、ほかの端末も速く読める）
    ・直すときは、先に画面を変えてから受け口へ送る。だめだったら元に戻して知らせる
    ・ほかの端末で先に変わっていたら（更新日時がちがう）、読み直して知らせる
    ・合言葉はこの端末の localStorage にだけ覚える。お客様の情報は端末に残さない
@@ -14,7 +15,9 @@
   var $ = D.$ = function (id) { return document.getElementById(id); };
   // ★pin のキーは、バグるOrder受付も読み書きする（同じ t3dining.github.io なので、どちらかで1回入れれば両方で使える）。名前を変えるときは Order受付にも知らせる
   var KEY = D.KEY = { pin: 'baguru.daicho.pin', seen: 'baguru.daicho.seen', sound: 'baguru.daicho.sound', shell: 'baguru.daicho.shell' };
-  var POLL_MS = 15000;
+  var POLL_MS = 3000;      // 変わったかを聞く間かく（2026-11-02c）
+  var FULL_MS = 60000;     // 変わっていなくても、念のため読み直す間かく（シートを手で直したとき）
+  var OLD_POLL_MS = 15000; // 受け口が前の版（tick が無い）のときに読み直す間かく
 
   var ST = D.ST = { REQ: 'リクエスト', WAIT: '来店待ち', IN: '来店済み', OUT: '退店', NO: 'お断り', CXL: 'キャンセル', NOSHOW: '無断キャンセル' };
   D.HOLDS = { 'リクエスト': true, '来店待ち': true, '来店済み': true, '退店': true };      // 席を使う
@@ -25,7 +28,7 @@
     pin: get(KEY.pin), today: '', date: '', view: startView(),
     rows: {}, pending: [], web: [], tables: [], conf: {}, days: {},
     seen: Number(get(KEY.seen) || 0), sound: get(KEY.sound) === '1',
-    timer: null, busy: false, again: false, panel: null, listRange: null
+    timer: null, busy: false, again: false, panel: null, listRange: null, beat: 0, writing: 0, writes: 0
   };
 
   /** 開いたときの画面は必ずテーブル管理（ユーザーの指示）。「更新」のときだけ、見ていた画面に戻る（start.js が控える） */
@@ -102,7 +105,14 @@
     offline: 'つながりません。電波・Wi-Fi を確かめてください。', no_answer: 'つながりません。少し待ってからもう一度。'
   };
   D.errText = function (e) { return ERR[e.code] || ERR.no_answer; };
-  D.post = function (payload) { payload.pin = st.pin; return A.post(payload).then(fixWords); };
+  var READS = { load: true, tick: true, customers: true, customer: true };   // 読むだけの口。ほかは直す口
+  D.post = function (payload) {
+    payload.pin = st.pin;
+    var write = !READS[payload.action];
+    if (write) st.writing++;
+    var done = function () { if (write) { st.writing--; st.writes++; D.load(); } };
+    return A.post(payload).then(fixWords).then(function (r) { done(); return r; }, function (e) { done(); throw e; });
+  };
   // 前に「お子さま連れ」と書いていたキーワードを「お子様連れ」にそろえる（受け口・設定のタブに古い書き方が残っていても同じものとして扱う）
   var OLD_WORDS = { 'お子さま連れ': 'お子様連れ' };
   function fixWords(o) {
@@ -134,8 +144,11 @@
       if (!st.queued) st.queued = st.loading.then(function () { st.queued = null; return D.load(); });
       return st.queued;
     }
-    var rg = D.range();
+    var rg = D.range(), gen = st.writes, t0 = Date.now();
+    st.loadAt = t0;
     st.loading = D.post({ action: 'load', from: rg.from, to: rg.to }).then(function (r) {
+      st.loadMs = Date.now() - t0;
+      if (st.today && (st.writing || st.writes !== gen)) return;   // 読んでいるあいだに、この端末で直した。古い中身で画面を戻さない（直し終わると読み直す）
       var firstTime = !st.today;
       st.today = r.today;
       if (!st.date) st.date = r.today;
@@ -148,6 +161,7 @@
       st.loadedAt = r.now;
       st.loadedRange = { from: r.from, to: r.to };
       st.version = r.version;
+      st.rev = r.rev;
       if (!st.seen) { st.seen = Date.now(); set(KEY.seen, String(st.seen)); }
       saveShell(r);
       var wasWarm = endWarm();
@@ -204,8 +218,30 @@
 
   D.startPolling = function () {
     D.stopPolling();
-    st.timer = setInterval(function () { if (!document.hidden) D.load(); }, POLL_MS);
+    st.timer = setInterval(function () {
+      if (document.hidden) return;
+      st.beat = (st.beat + 1) % 5;
+      if (!st.beat && st.today && !st.warm) D.refresh();   // 時刻で変わる表示は、これまでどおり15秒ごとに描き直す
+      check();
+    }, POLL_MS);
   };
+  /** 変わったかだけを聞き、変わっていたら読み直す。受け口が前の版なら、15秒ごとに読み直す */
+  function check() {
+    if (st.loading || st.checking) return;
+    if (Date.now() - st.loadAt >= (st.noTick ? OLD_POLL_MS : FULL_MS)) return D.load();
+    if (st.noTick) return;
+    var t0 = Date.now();
+    st.checking = true;
+    D.post({ action: 'tick' }).then(function (r) {
+      st.tickMs = Date.now() - t0;
+      if (r.rev !== st.rev) return D.load();
+      st.loadedAt = r.now;
+      syncText('最終更新 ' + D.clock(r.now), false);
+    }).catch(function (e) {
+      if (e.code === 'unknown_action') { st.noTick = true; return null; }
+      return D.load();   // つながらない・合言葉が変わった、などの知らせは、読み直しのほうで出す
+    }).then(function () { st.checking = false; });
+  }
   D.stopPolling = function () { if (st.timer) clearInterval(st.timer); st.timer = null; };
   document.addEventListener('visibilitychange', function () { if (!document.hidden && st.pin && st.today) D.load(); });
   window.addEventListener('online', function () { if (st.pin && st.today) D.load(); });
