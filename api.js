@@ -1,6 +1,8 @@
 /* 受け口（コード.gs）とのやりとり（予約フォーム・お問い合わせと応募のフォーム・予約ボードで使う）
    ・受け口の場所は config.js の BAGURU.reserveApi
    ・★ホームページの 公開用/js/api.js の写し。受け口とのやりとりを変えたら、両方を直す
+   ・★公式アプリも https://t3dining.github.io/baguru-yoyaku/api.js を読む（js/data.js の SHOP.reserveBase）。予約ボードが t3dining-store に引っ越したあとも、
+     前の場所にずっと置く（道具/公開する.py の OLD_KEEP）。消さない・名前と場所を変えない。★合言葉を読む・覚えるものを足さない
    ・★Google は、受け口が動いたあと返事を受け取る段で、ときどき 404 や形の違う返事を返す（Task Board で実際にあった）。
      2回まで黙って送り直す。予約は「受付の印（rid）」を付けて送るので、2回届いても1件にしかならない */
 (function (global) {

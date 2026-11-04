@@ -3,158 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>
-  /* バグる Owner の中から開いたとき（?from=owner）だけ、viewport-fit=cover を外す（2026-11-01）。
-     iPhone のホーム画面のアプリで別のページへ移ると、cover のままでは、使える高さが時計の帯のぶん短いのに（画面 932・使える高さ 873）
-     上の端は時計の下にもぐり、下に 59 のすき間ができて全体が上に寄る（ko-dai さんの iPhone で測った）。cover を外すと下の端まで届く。
-     ホーム画面から直接開くとき（お店のタブレットなど）は、今までのまま */
-  (function () {
-    var owner = /[?&]from=owner(&|$)/.test(location.search);
-    try { owner = owner || sessionStorage.getItem('baguru.yoyaku.owner') === '1'; } catch (e) {}
-    if (!owner) return;
-    var v = document.querySelector('meta[name="viewport"]');
-    v.setAttribute('content', v.getAttribute('content').replace(/,\s*viewport-fit=cover/, ''));
-    addEventListener('pageshow', function () { scrollTo(0, 0); });   // 切り替えたときに 59 のずれが残ることがあるので、いちばん上に戻す
-  })();
-</script>
 <meta name="robots" content="noindex, nofollow">
-<title>予約ボード｜バグる</title>
 <meta name="theme-color" content="#15110f">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png" sizes="192x192">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="予約ボード">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- 受け口への道を先に開いておく（最初の読み込みが少し速くなる） -->
-<link rel="preconnect" href="https://script.google.com" crossorigin>
-<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
-<!-- 字の形は、届くのを待たずに画面を出す（届いたら入れかわる） -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="daicho.css?v=e5dce491">
+<!-- 予約ボードは、お店用のアプリの引っ越し（2026-11-05 ko-dai さんの判断。計画書 バグる/お店用アプリの引っ越し.md）で
+     https://t3dining-store.github.io/baguru-yoyaku/ へ移った。前のアドレス（https://t3dining.github.io/baguru-yoyaku/）を開いたら、ここが出る。
+     ・この場所に残ったお店の保存（合言葉・今日の予約の控えなど）を消す。★お客さまの保存（bg. で始まるもの）は消さない
+     ・新しいアドレスでは、合言葉を入れ直し、ホーム画面のアイコンも入れ直してもらう（保存の場所が別になるため）
+     ・★この場所の config.js・api.js は、公式アプリが読むので、ずっと置く（道具/公開する.py の OLD_KEEP）
+     公開の道具（道具/公開する.py）が、引っ越しの日（MOVED = True）から、前の場所の index.html として出す -->
+<title>予約ボードは引っ越しました｜バグる</title>
+<style>
+  :root { --bg: #15110f; --card: #211b18; --text: #f6efe8; --muted: #c9bdb2; --ember: #e0301e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, sans-serif; line-height: 1.7; }
+  main { width: 100%; max-width: 560px; background: var(--card); border-radius: 14px; padding: 28px 24px; }
+  h1 { margin: 0 0 12px; font-size: 24px; }
+  p { margin: 0 0 12px; color: var(--muted); font-size: 16px; }
+  ol { margin: 0 0 20px; padding-left: 1.4em; font-size: 16px; }
+  li { margin-bottom: 6px; }
+  a.go { display: block; text-align: center; background: var(--ember); color: #fff; text-decoration: none; font-weight: 700; font-size: 18px;
+    padding: 14px 16px; border-radius: 10px; }
+  small { display: block; margin-top: 14px; color: var(--muted); font-size: 13px; word-break: break-all; }
+</style>
 </head>
 <body>
-
-<!-- 合言葉 -->
-<section class="login" id="login" hidden>
-  <div class="login-box">
-    <img src="logo.png" width="64" height="61" alt="">
-    <h1>予約ボード</h1>
-    <p>炭焼ハンバーグ バグる。お店のタブレットと、社員のスマホで使います。<br>「予約ボードの合言葉」を入れてください。</p>
-    <form id="login-form">
-      <label for="pin">合言葉</label>
-      <input type="password" id="pin" autocomplete="current-password" autocapitalize="off" spellcheck="false" required>
-      <button type="submit" class="btn ember big">始める</button>
-      <p class="err" id="login-err" role="alert" hidden></p>
-    </form>
-    <p class="note">合言葉はこの端末の中にだけ覚えます。お客様に見せないでください。</p>
-    <button type="button" class="btn" id="login-home" hidden>🏠 ホームに戻る</button>
-  </div>
-</section>
-
-<div class="app" id="app" hidden>
-  <!-- 左のメニュー -->
-  <nav class="side" id="side" aria-label="メニュー">
-    <div class="side-logo"><img src="logo.png" width="36" height="34" alt=""><b>予約ボード</b></div>
-    <button type="button" class="nav" data-view="requests"><svg class="i"><use href="#i-inbox"/></svg><span>予約受付</span><em class="badge" id="badge-req" hidden></em></button>
-    <button type="button" class="nav" data-view="floor"><svg class="i"><use href="#i-table"/></svg><span>テーブル管理</span></button>
-    <button type="button" class="nav" data-view="takeout"><svg class="i"><use href="#i-bag"/></svg><span>テイクアウト</span><em class="badge" id="badge-to" hidden></em></button>
-    <button type="button" class="nav" data-view="schedule"><svg class="i"><use href="#i-sched"/></svg><span>スケジュール</span></button>
-    <button type="button" class="nav" data-view="list"><svg class="i"><use href="#i-list"/></svg><span>予約リスト</span></button>
-    <button type="button" class="nav" data-view="customers"><svg class="i"><use href="#i-user"/></svg><span>顧客台帳</span></button>
-    <button type="button" class="nav" data-view="settings"><svg class="i"><use href="#i-gear"/></svg><span>設定</span></button>
-    <div class="side-foot">
-      <button type="button" class="nav small" id="b-sound" aria-pressed="false"><svg class="i"><use href="#i-bell"/></svg><span>音 オフ</span></button>
-      <button type="button" class="nav small" id="b-logout"><svg class="i"><use href="#i-out"/></svg><span>ログアウト</span></button>
-      <p class="sync" id="sync" role="status"></p>
-    </div>
-  </nav>
-
-  <div class="main">
-    <!-- 上の帯：日付・更新・予約登録 -->
-    <header class="top" id="top">
-      <div class="top-l"><h1 id="view-title">スケジュール</h1></div>
-      <div class="top-date" id="top-date">
-        <button type="button" class="tbtn" id="d-prev" aria-label="前の日">‹</button>
-        <label class="dpick"><span id="d-label"></span><input type="date" id="d-input" aria-label="日にちを選ぶ"></label>
-        <button type="button" class="tbtn" id="d-next" aria-label="次の日">›</button>
-        <button type="button" class="tbtn today" id="d-today">今日</button>
-      </div>
-      <div class="top-r">
-        <button type="button" class="tbtn home" id="b-home" hidden title="ホームに戻ります">🏠<span>ホーム</span></button>
-        <button type="button" class="tbtn reload" id="b-reload" title="いちばん新しい画面と予約を読み直します"><svg class="i"><use href="#i-reload"/></svg><span>更新</span></button>
-        <button type="button" class="tbtn add" id="b-add"><svg class="i"><use href="#i-plus"/></svg><span>予約登録</span></button>
-      </div>
-    </header>
-    <div class="loadbar" id="loadbar" role="status" hidden></div>
-    <button type="button" class="soundgate" id="soundgate" hidden>🔔 ここを押すと、予約の音が鳴るようになります</button>
-    <div class="newbar" id="newbar" role="alert" hidden><span id="newbar-text"></span><button type="button" id="newbar-go">見る</button></div>
-    <div class="pickbar" id="pickbar" role="status" hidden></div>
-    <div class="newbar orderbar" id="orderbar" role="alert" hidden><span id="orderbar-text"></span><button type="button" id="orderbar-go">見る</button></div>
-
-    <!-- 画面 -->
-    <section class="view" id="v-schedule" data-view="schedule"></section>
-    <section class="view" id="v-floor" data-view="floor" hidden></section>
-    <section class="view" id="v-list" data-view="list" hidden></section>
-    <section class="view" id="v-requests" data-view="requests" hidden></section>
-    <section class="view" id="v-takeout" data-view="takeout" hidden></section>
-    <section class="view" id="v-customers" data-view="customers" hidden></section>
-    <section class="view" id="v-settings" data-view="settings" hidden></section>
-  </div>
-
-  <!-- 右から出る：予約の詳細・お客様の詳細 -->
-  <aside class="panel" id="panel" hidden aria-label="詳細">
-    <div class="panel-in" id="panel-in"></div>
-  </aside>
-</div>
-
-<!-- スマホの下のメニュー -->
-<nav class="bnav" id="bnav" hidden aria-label="メニュー">
-  <button type="button" class="nav" data-view="requests"><svg class="i"><use href="#i-inbox"/></svg><span>受付</span><em class="badge" id="badge-req2" hidden></em></button>
-  <button type="button" class="nav" data-view="floor"><svg class="i"><use href="#i-table"/></svg><span>テーブル</span></button>
-  <button type="button" class="nav" data-view="schedule"><svg class="i"><use href="#i-sched"/></svg><span>スケジュール</span></button>
-  <button type="button" class="nav" data-view="list"><svg class="i"><use href="#i-list"/></svg><span>リスト</span></button>
-  <button type="button" class="nav" data-view="more"><svg class="i"><use href="#i-menu"/></svg><span>その他</span></button>
-</nav>
-
-<!-- 予約登録・変更（全画面） -->
-<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sh-title"></div>
-<!-- 人数を入れる小さな窓 -->
-<div class="pop" id="pop" hidden></div>
-<!-- 確かめ・選ぶ窓 -->
-<div class="modal" id="modal" hidden role="dialog" aria-modal="true"><div class="modal-in" id="modal-in"></div></div>
-<!-- バーを動かしているときの帯 -->
-<div class="editbar" id="editbar" hidden></div>
-<div class="toast" id="toast" role="status" hidden></div>
-
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
-  <symbol id="i-table" viewBox="0 0 24 24"><path d="M4 9h16M6 9v10M18 9v10M8 5h8"/></symbol>
-  <symbol id="i-sched" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h6M8 16h9"/></symbol>
-  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></symbol>
-  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
-  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol>
-  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z"/><path d="M10 21h4"/></symbol>
-  <symbol id="i-reload" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></symbol>
-  <symbol id="i-out" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
-  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
-  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 3h4l2 5-3 2a12 12 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2z"/></symbol>
-</svg>
-
-<script src="config.js?v=ae4605a4" defer></script>
-<script src="api.js?v=8d2362fd" defer></script>
-<script src="core.js?v=5f38a16f" defer></script>
-<script src="detail.js?v=b4133298" defer></script>
-<script src="register.js?v=f5627a4c" defer></script>
-<script src="schedule.js?v=c7b94c37" defer></script>
-<script src="floor.js?v=bd1e2872" defer></script>
-<script src="lists.js?v=d0671e1c" defer></script>
-<script src="settings.js?v=c5bd1c3c" defer></script>
-<script src="takeout.js?v=4dcc7706" defer></script>
-<script src="start.js?v=ae9f0612" defer></script>
+<main>
+  <h1>予約ボードは引っ越しました</h1>
+  <p>新しいアドレスで開き直してください。</p>
+  <ol>
+    <li>下の「新しい予約ボードを開く」を押します</li>
+    <li>お店の合言葉を、もう一度入れます</li>
+    <li>ホーム画面のアイコンを入れ直します（この古いアイコンは消してください）</li>
+  </ol>
+  <a class="go" id="go" href="https://t3dining-store.github.io/baguru-yoyaku/">新しい予約ボードを開く</a>
+  <small>新しいアドレス：https://t3dining-store.github.io/baguru-yoyaku/</small>
+</main>
+<script>
+  (function () {
+    'use strict';
+    var NEW = 'https://t3dining-store.github.io/baguru-yoyaku/';
+    // この場所に残った、お店の保存を消す。計画書 バグる/お店用アプリの引っ越し.md の「古い場所で消すもの」の表の名前を全部
+    //（どのアプリの「引っ越しました」でも同じ。localStorage と sessionStorage の両方から、名前で1つずつ。社員のスマホは古いアイコンしか開かないことがあるため）
+    // ★bg. で始まる名前は公式アプリ（お客さまの会員・スタンプ）も使うので、この表の名前だけを消す。まとめて消さない
+    // ★bg.owner は公式アプリの 🏠 も読む。このページを出すのは引っ越しの日（公式アプリの 🏠 を直したあと）
+    var NAMES = ['baguru.daicho.pin', 'baguru.line.screen', 'bg.hpAdmin', 'bg.hub', 'bg.owner', 'baguru.yoyaku.owner', 'baguru.yoyaku.view',
+      'baguru.daicho.seen', 'baguru.daicho.sound', 'baguru.daicho.shell', 'bg.cookRung'];
+    NAMES.forEach(function (k) {
+      try { localStorage.removeItem(k); } catch (e) {}
+      try { sessionStorage.removeItem(k); } catch (e) {}
+    });
+    // Owner・Staff から来たときの印（?from=owner&hub=staff など）は、そのまま新しいアドレスへ渡す
+    var go = document.getElementById('go');
+    if (go && /^\?[\w=&%.-]*$/.test(location.search)) go.href = NEW + location.search;
+  })();
+</script>
 </body>
 </html>
