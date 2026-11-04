@@ -36,9 +36,10 @@
       if (s.seated) {
         var r = s.seated, since = r.inAt ? Math.round((Date.now() - r.inAt) / 60000) : now - D.toMin(r.start);
         var left = D.toMin(r.start) + r.keep - now;
-        cls += left < 0 ? ' over' : left <= 15 ? ' soon' : ' seated';
+        cls += (left < 0 ? ' over' : left <= 15 ? ' soon' : ' seated') + (D.name(r) === '直接来店' ? ' walk' : '');
         // 着席中の字は、席の大きさに合わせて入るかぎり大きくする（fitSeated。2026-11-04 ko-dai さんの指示「緑の中の文字を最大限大きく」）。
         // 1行目＝お名前（直接来店は「直接来店」）と座ってからの分、2行目＝人数だけ（2026-11-04 ko-dai さんの指示）。残り・超過（残り15分から）は、卓番の右に出す
+        // 字の大きさ（fitSeated）：直接来店はどの席でも同じ大きさ、予約のお名前は1行に収まる大きさ、人数はどの席でも同じ大きさ
         inner = '<span class="ft-who"><span class="nm">' + esc(D.name(r)) + '</span><i></i><b>' + since + '</b><small>分</small></span><span class="ft-ppl"><b>' + r.people + '</b><small>名</small></span>';
         if (left <= 15) bubble += '<span class="ft-left">' + (left < 0 ? (-left) + '分超過' : '残り' + left + '分') + '</span>';
       } else {
@@ -55,49 +56,58 @@
         + bubble + '<span class="ft-name">' + esc(t.name) + '</span></button>';
     }).join('');
     area.innerHTML = '<div class="floor-scale" style="width:' + (cw * scale) + 'px;height:' + (ch * scale) + 'px"><div class="floor-canvas" style="width:' + cw + 'px;height:' + ch + 'px;transform:scale(' + scale + ')">' + tiles + '</div></div>';
-    fitSeated(area);
+    fitSeated(area, tables);
     fitLeft(area);
     renderSide(rows);
   }
 
-  /** 着席中の席の字を、枠に入るかぎり大きくする。行ごとの大きさの釣り合い（W）を保ったまま、
-   *  幅は行ごとに、高さは全部の行で収まる一番大きい大きさにする（長いお名前は、その行だけ小さくなる）。
+  /** 着席中の席の字の大きさを決める（2026-11-04 ko-dai さんの指示）
+   *  ・直接来店：どの席でも同じ大きさ。いちばん小さい席に「直接来店 000分」と「00名」が入る、一番大きい大きさ（座ってからの分が3けたになっても変わらない）
+   *  ・予約のお名前：1行に収まる大きさ（分は3けたとして測るので、時間がたっても大きさが変わらない）。人数の行の残りの高さまで
+   *  ・人数：どの席でも、直接来店と同じ大きさ
    *  ★幅と高さは字の大きさに比例するので、100px で1回測れば計算で決まる（配置図の拡大・縮小は測る値に効かない） */
-  var FIT_W = { 'ft-who': 1, 'ft-ppl': 1.3 }, FIT_PROBE = 100, FIT_MAX = 64;
-  function fitSeated(area) {
-    var jobs = [].slice.call(area.querySelectorAll('.ft.seated .ft-box,.ft.soon .ft-box,.ft.over .ft-box')).map(function (b) {
+  var FIT_W = { 'ft-who': 1, 'ft-ppl': 1.3 }, FIT_PROBE = 100, FIT_MAX = 64, FIT_RATIO = 2.5;
+  function fitSeated(area, tables) {
+    var boxes = [].slice.call(area.querySelectorAll('.ft.seated .ft-box,.ft.soon .ft-box,.ft.over .ft-box'));
+    if (!boxes.length || !tables.length) return;
+    var sample = document.createElement('div');   // 見本の席（いちばん小さい席の大きさ。見えないように置く）
+    sample.className = 'ft seated fit-sample';
+    sample.style.cssText = 'left:0;top:0;visibility:hidden;width:' + Math.min.apply(null, tables.map(function (t) { return t.w; })) + 'px;height:' + Math.min.apply(null, tables.map(function (t) { return t.h; })) + 'px';
+    sample.innerHTML = '<span class="ft-box"><span class="ft-who"><span class="nm">直接来店</span><i></i><b>000</b><small>分</small></span><span class="ft-ppl"><b>00</b><small>名</small></span></span>';
+    area.querySelector('.floor-canvas').appendChild(sample);
+    var jobs = [sample.querySelector('.ft-box')].concat(boxes).map(function (b) {
       var lines = [].slice.call(b.children), k = lines.map(function (l) { return FIT_W[l.classList[0]] || 1; });
+      var min = b.querySelector('.ft-who b'), real = min ? min.textContent : '';
+      if (min) min.textContent = '000';   // 分は3けたとして測る
       lines.forEach(function (l, i) { l.style.fontSize = FIT_PROBE * k[i] + 'px'; l.classList.add('fit-probe'); });
-      var nm = b.querySelector('.ft-who .nm'), txt = nm ? nm.textContent : '', sp = txt.search(/[ 　]/);
-      return { b: b, lines: lines, k: k, nm: nm, one: esc(txt), two: sp > 0 ? esc(txt.slice(0, sp)) + '<br>' + esc(txt.slice(sp + 1).trim()) : '' };
+      return { b: b, lines: lines, k: k, min: min, real: real, walk: b.parentNode.classList.contains('walk') };
     });
-    var measure = function (j) { return j.lines.map(function (l, i) { var p = FIT_PROBE * j.k[i]; return { w: l.offsetWidth / p, h: l.offsetHeight / p, k: j.k[i] }; }); };
     jobs.forEach(function (j) {   // 先に全部を書き、まとめて測る（読み書きを交互にしない）
       var cs = getComputedStyle(j.b);
       j.w = j.b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      j.h = j.b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (parseFloat(cs.rowGap) || 0) * (j.lines.length - 1);
-      j.m = measure(j);
+      j.h = j.b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (parseFloat(cs.rowGap) || 0) * (j.lines.length - 1) - 2;   // 2px は字の高さの端数
+      j.m = j.lines.map(function (l, i) { var p = FIT_PROBE * j.k[i]; return { w: l.offsetWidth / p, h: l.offsetHeight / p, k: j.k[i] }; });
     });
-    // 姓と名のあいだに空きがあるお名前は、2行に分けた形も測る（長いお名前は、分けたほうが大きくなることがある）
-    jobs.forEach(function (j) { if (j.two) j.nm.innerHTML = j.two; });
-    jobs.forEach(function (j) { if (j.two) j.m2 = measure(j); });
-    jobs.forEach(function (j) {
+    var ok = function (j) { return j.w > 0 && j.h > 0 && j.m.length === 2 && j.m.every(function (x) { return x.w > 0 && x.h > 0; }); };
+    var fixed = ok(jobs[0]) ? fit(jobs[0]) : null;   // [直接来店の行, 人数の行]
+    sample.parentNode.removeChild(sample);
+    jobs.slice(1).forEach(function (j) {
+      if (j.min) j.min.textContent = j.real;
       j.lines.forEach(function (l) { l.classList.remove('fit-probe'); });
-      var ok = function (m) { return m && m.every(function (x) { return x.w > 0 && x.h > 0; }); };
-      if (!(j.w > 0 && j.h > 0) || !ok(j.m)) { if (j.two) j.nm.innerHTML = j.one; j.lines.forEach(function (l) { l.style.fontSize = ''; }); return; }   // 見えていない（測れない）ときは、ふだんの大きさ
-      var a = fit(j, j.m), b = ok(j.m2) ? fit(j, j.m2) : null;
-      var use2 = b && b[0] > a[0] * 1.15;   // お名前の行が、はっきり大きくなるときだけ2行にする
-      if (j.two && !use2) j.nm.innerHTML = j.one;
-      (use2 ? b : a).forEach(function (px, i) { j.lines[i].style.fontSize = px + 'px'; });
+      if (!fixed || !ok(j)) { j.lines.forEach(function (l) { l.style.fontSize = ''; }); return; }   // 見えていない（測れない）ときは、ふだんの大きさ
+      var who = j.walk ? fixed[0] : Math.min(j.w * 0.97 / j.m[0].w, (j.h - fixed[1] * j.m[1].h) / j.m[0].h, FIT_MAX);
+      j.lines[0].style.fontSize = Math.floor(who * 2) / 2 + 'px';
+      j.lines[1].style.fontSize = fixed[1] + 'px';
     });
   }
-  /** 測った形 m で、高さに収まる一番大きい大きさ（行ごとの px） */
-  function fit(j, m) {
-    var size = function (k) { return m.map(function (x) { return Math.min(k * x.k, j.w * 0.97 / x.w, FIT_MAX); }); };   // 幅は少しだけ余白を残す
+  /** 見本の席で、2行が高さに収まる一番大きい大きさ（行ごとの px）。幅は少しだけ余白を残す。人数の行はお名前の行の FIT_RATIO 倍まで */
+  function fit(j) {
+    var m = j.m;
+    var size = function (k) { return m.map(function (x) { return Math.min(k * x.k, j.w * 0.97 / x.w, FIT_MAX); }); };
     var tall = function (s) { return s.reduce(function (a, px, i) { return a + px * m[i].h; }, 0); };
     var lo = 6, hi = FIT_MAX;
-    for (var n = 0; n < 14; n++) { var mid = (lo + hi) / 2; if (tall(size(mid)) <= j.h - 2) lo = mid; else hi = mid; }   // 高さも 2px だけ残す（字の高さの端数）
-    var s = size(lo), top = Math.min.apply(null, s) * 2;   // 長いお名前で1行だけ小さくなっても、ほかの行は2倍までにする（つり合いが崩れすぎないように）
+    for (var n = 0; n < 14; n++) { var mid = (lo + hi) / 2; if (tall(size(mid)) <= j.h) lo = mid; else hi = mid; }
+    var s = size(lo), top = s[0] * FIT_RATIO;
     return s.map(function (px) { return Math.floor(Math.min(px, top) * 2) / 2; });
   }
   function fitLeft(area) {

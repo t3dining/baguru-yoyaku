@@ -389,8 +389,8 @@ dl.conf dd{margin:0; font-weight:700}
 .ft-ppl{font-size:28px; line-height:1.02; white-space:nowrap; font-family:var(--en); font-weight:600}
 .ft-ppl small{font-family:var(--jp); font-size:.55em; font-weight:900; margin-left:.04em}
 .ft-who b{font-family:var(--en); font-weight:600}   /* お名前の隣の、座ってからの分 */
-.ft-who small{font-size:.7em; margin-left:.04em}
-.ft-who i{display:inline-block; width:.3em}
+.ft-who small{font-size:.62em; margin-left:.04em}
+.ft-who i{display:inline-block; width:.25em}
 .ft-left{position:absolute; top:17px; right:9px; z-index:1; font-size:21px; font-weight:900; line-height:1; color:#fff; white-space:nowrap}   /* 残り○分・○分超過（卓番の右） */
 .ft-box .fit-probe{max-width:none; width:max-content; flex:none}
 .ft.seated .ft-box{background:var(--ok); border-color:var(--ok2); color:#fff}
@@ -405,7 +405,7 @@ dl.conf dd{margin:0; font-weight:700}
    座っているときは、名前の行を少し下げて卓番と重ねない */
 .ft-name{position:absolute; top:17px; left:12px; z-index:1; font-family:var(--en); font-size:22px; font-weight:600; line-height:1; color:#4a413a}
 .ft.seated .ft-name,.ft.soon .ft-name,.ft.over .ft-name{color:#fff}
-.ft.seated .ft-box,.ft.soon .ft-box,.ft.over .ft-box{padding:27px 4px 3px; gap:0; justify-content:space-evenly}   /* 上は卓番の下から。字は fitSeated で大きくする */
+.ft.seated .ft-box,.ft.soon .ft-box,.ft.over .ft-box{padding:27px 2px 3px; gap:0; justify-content:space-evenly}   /* 上は卓番の下から。字は fitSeated で大きくする */
 .ft-next{position:absolute; top:-34px; left:50%; transform:translateX(-50%); white-space:nowrap; background:#fff; border:2px solid #b9ad9f; color:#7a7069; border-radius:6px; padding:0 10px; font-size:17px; font-weight:700}
 .ft-next.near{border-color:#e0301e; color:#e0301e}
 .ft-next::after{content:""; position:absolute; left:50%; bottom:-7px; margin-left:-6px; border:6px solid transparent; border-top-color:inherit; border-bottom:0}
