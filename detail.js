@@ -6,8 +6,9 @@
   'use strict';
   var D = window.D, esc = D.esc, st = D.st, ST = D.ST;
 
-  /** お客さまへのメールが送れていない（送る前に止まったときは「待ち」のまま残る）。承認待ちの受付メールは出さない */
-  function mailStuck(r) { return r.email && r.status !== ST.REQ && (r.mail === '送れなかった' || (r.mail === '待ち' && Date.now() - r.updatedAt > 120000)); }
+  /** お客さまへのメールが送れていない（送る前に止まったときは「待ち」のまま残る）。承認待ちの受付メールは出さない。
+   *  ★送り直せるのは来店待ち（確定のメール）とお断りだけ（キャンセルにした予約に確定のメールを送らない。2026-11-05 から。受け口も同じ） */
+  function mailStuck(r) { return r.email && (r.status === ST.WAIT || r.status === ST.NO) && (r.mail === '送れなかった' || (r.mail === '待ち' && Date.now() - r.updatedAt > 120000)); }
 
   function actions(r) {
     var b = function (act, label, cls) { return '<button type="button" class="btn ' + (cls || '') + '" data-act="' + act + '">' + label + '</button>'; };
