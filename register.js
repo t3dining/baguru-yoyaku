@@ -6,30 +6,37 @@
   'use strict';
   var D = window.D, esc = D.esc, st = D.st, ST = D.ST, $ = D.$;
 
-  /* ---------- 席を選ぶ部品（登録の2段目と、リクエストの承認で使う） ---------- */
-  /** 席を選ぶときの見出し：名前の頭の英字で A卓・B卓・C卓 にまとめる。★席の「グループ」は、ネット予約の席の合わせ方に使うので、ここでは使わない */
-  function seatCat(t) { var m = /^[A-Za-z]/.exec(t.name); return m ? m[0].toUpperCase() + '卓' : t.group; }
+  /* ---------- 席を選ぶ部品（登録の2段目と、リクエストの承認で使う） ----------
+     テーブル管理と同じ店の見取り図で、席を押して選ぶ（2026-11-04 ko-dai さんの指示「テーブル管理画面のように店舗の見取り図を」。前は A卓・B卓・C卓 の一覧）。
+     しま模様は、その時間に別の予約がある席（選べるが、選ぶと下に注意を出す）。狭い画面では半分より小さくせず、横に動かして見る */
   D.tableChooser = function (box, o) {
-    var sel = (o.selected || []).slice(), keep = o.keep;
+    var sel = (o.selected || []).slice(), keep = o.keep, scale = 0;
     function render() {
-      var a = D.toMin(o.start), b = a + keep, groups = [], byG = {};
-      D.shownTables().forEach(function (t) {
-        var g = seatCat(t);
-        if (!byG[g]) { byG[g] = []; groups.push(g); }
-        byG[g].push(t);
-      });
-      groups.sort(function (x, y) { var p = /卓$/.test(x), q = /卓$/.test(y); return p && q ? (x < y ? -1 : 1) : p ? -1 : q ? 1 : 0; });   // A卓・B卓・C卓の順。そのほかは後ろ
+      var a = D.toMin(o.start), b = a + keep, tables = D.shownTables();
+      var x0 = Infinity, y0 = Infinity, x1 = 0, y1 = 0, pad = 14;
+      tables.forEach(function (t) { x0 = Math.min(x0, t.x); y0 = Math.min(y0, t.y); x1 = Math.max(x1, t.x + t.w); y1 = Math.max(y1, t.y + t.h); });
+      if (!tables.length) x0 = y0 = 0;
+      var cw = x1 - x0 + pad * 2, ch = y1 - y0 + pad * 2;
+      // 大きさは最初に1度だけ決める（押すたびに変わらないように）。店全体が横にも縦にも収まる大きさ。小さくても 0.45 まで（それより狭い画面は横に動かす）
+      if (!scale) scale = Math.max(0.45, Math.min(1, ((box.clientWidth || 800) - 16) / cw, (window.innerHeight - box.getBoundingClientRect().top - 150) / ch));   // 150：下の注意書きとボタンの分
       var total = sel.reduce(function (n, id) { var t = D.table(id); return n + (t ? t.cap : 0); }, 0), lack = o.people - total;
-      box.innerHTML = groups.map(function (g) {
-        return '<div class="tc-g"><p class="tc-gn">' + esc(g) + '</p><div class="tc-row">' + byG[g].map(function (t) {
-          var cl = D.clashes(o.date, [t.id], a, b, o.except), on = sel.indexOf(t.id) >= 0;
-          return '<button type="button" class="tc' + (on ? ' on' : '') + (cl.length ? ' busy' : '') + '" data-t="' + esc(t.id) + '">'
-            + '<b>' + esc(t.name) + '</b><small>' + t.cap + '名' + (t.kind !== 'テーブル' ? '・' + esc(t.kind) : '') + '</small>'
-            + '<em>' + (cl.length ? esc(cl[0].start + ' ' + D.name(cl[0])) + (cl.length > 1 ? ' 他' : '') : '空き') + '</em></button>';
-        }).join('') + '</div></div>';
-      }).join('')
+      var tiles = tables.map(function (t) {
+        var cl = D.clashes(o.date, [t.id], a, b, o.except), on = sel.indexOf(t.id) >= 0;
+        var chairs = '';
+        for (var i = 0; i < Math.max(1, Math.ceil(t.cap / 2)); i++) chairs += '<i></i>';
+        return '<button type="button" class="ft tcf k-' + (t.kind === 'カウンター' ? 'counter' : 'table') + (on ? ' on' : '') + (cl.length ? ' busy' : '') + '" data-t="' + esc(t.id) + '"'
+          + ' style="left:' + (t.x - x0 + pad) + 'px;top:' + (t.y - y0 + pad) + 'px;width:' + t.w + 'px;height:' + t.h + 'px">'
+          + '<span class="chairs ch-top">' + chairs + '</span><span class="ft-box"><span class="ft-cap">' + t.cap + '名</span>'
+          + '<span class="tcf-st">' + (cl.length ? esc(cl[0].start + ' ' + D.name(cl[0])) + (cl.length > 1 ? ' 他' : '') : '空き') + '</span></span>'
+          + '<span class="chairs ch-bottom">' + chairs + '</span><span class="ft-name">' + esc(t.name) + '</span></button>';
+      }).join('');
+      var old = box.querySelector('.tc-map'), sx = old ? old.scrollLeft : 0;
+      box.innerHTML = (tables.length ? '<div class="tc-map"><div class="floor-scale" style="width:' + (cw * scale) + 'px;height:' + (ch * scale) + 'px">'
+        + '<div class="floor-canvas" style="width:' + cw + 'px;height:' + ch + 'px;transform:scale(' + scale + ')">' + tiles + '</div></div></div>'
+        : '<p class="muted">席がありません。「設定」の「席」で入れられます。</p>')
         + (sel.length && lack > 0 ? '<p class="tc-warn ' + (lack >= 3 ? 'red' : 'yellow') + '">席が ' + lack + '名分 足りません（選んだ席 ' + total + '名・' + o.people + '名様）</p>' : '')
-        + (sel.some(function (id) { return D.clashes(o.date, [id], a, b, o.except).length; }) ? '<p class="tc-warn red">他の予約と重なる席を選んでいます（灰色の席）</p>' : '');
+        + (sel.some(function (id) { return D.clashes(o.date, [id], a, b, o.except).length; }) ? '<p class="tc-warn red">他の予約と重なる席を選んでいます（しま模様の席）</p>' : '');
+      if (sx && box.querySelector('.tc-map')) box.querySelector('.tc-map').scrollLeft = sx;   // 押した席が見えたままになるように
       if (o.onChange) o.onChange(sel, keep);
     }
     box.onclick = function (e) {
@@ -200,6 +207,7 @@
       + '<span>' + (f.tables.length ? esc(D.tableNames(f.tables)) : '席 未割り当て') + '</span>' + (f.sei ? '<span>' + esc(fullName()) + ' 様</span>' : '');
   }
   function go(n) { step = n; draw(); }
+  function redraw1() { var sc = $('sh-body').scrollTop; step1(); $('sh-body').scrollTop = sc; }   // 時間・人数を選んだときは、見ている所のまま
   function draw() {
     if (!f) return;
     if (step === 1) step1(); else if (step === 2) step2(); else if (step === 3) step3(); else confirmView();
@@ -216,22 +224,24 @@
       days += '<button type="button" class="dchip' + (d === f.date ? ' on' : '') + (w === 0 || (info && info.holiday) ? ' sun' : w === 6 ? ' sat' : '') + (info && info.type === 'closed' ? ' closed' : '') + '" data-d="' + d + '">'
         + '<b>' + D.md(d) + '</b><small>' + D.wd(d) + (info && info.type === 'closed' ? '・休' : '') + '</small><em>' + (n.length ? n.length + '組' : '') + '</em></button>';
     }
+    // 時間は5分きざみ。「時」を選んでから「分」を選ぶ（2026-11-04 ko-dai さんの指示「5分毎に選択できるように。画面がゴチャゴチャするのでまとめて」）。
+    // 営業時間の外は灰色（選べる）
     var vf = D.toMin(st.conf.viewFrom || '10:00'), vt = D.toMin(st.conf.viewTo || '23:30'), open = (st.days[f.date] || {}).open || [];
     var inOpen = function (m) { return open.some(function (r) { return m >= r[0] && m < r[1]; }); };
-    var times = '';
+    var cur = D.toMin(f.start), ch = Math.floor(cur / 60), hours = '', mins = '';
     for (var h = Math.floor(vf / 60); h * 60 < vt; h++) {
-      times += '<div class="trow"><span class="th">' + h + '時</span>';
-      for (var q = 0; q < 60; q += D.STEP) {
-        var m = h * 60 + q, t = D.hm(m);
-        times += '<button type="button" class="tchip' + (t === f.start ? ' on' : '') + (open.length && !inOpen(m) ? ' off' : '') + '" data-tm="' + t + '">' + t + '</button>';
-      }
-      times += '</div>';
+      var shut = open.length && !inOpen(h * 60) && !inOpen(h * 60 + 55);
+      hours += '<button type="button" class="hchip' + (h === ch ? ' on' : '') + (shut ? ' off' : '') + '" data-hr="' + h + '">' + h + '<small>時</small></button>';
+    }
+    for (var q = 0; q < 60; q += 5) {
+      var m = ch * 60 + q;
+      mins += '<button type="button" class="tchip' + (m === cur ? ' on' : '') + (open.length && !inOpen(m) ? ' off' : '') + '" data-tm="' + D.hm(m) + '">' + D.hm(m) + '</button>';
     }
     var ppl = '';
     for (var p = 1; p <= 12; p++) ppl += '<button type="button" class="pchip' + (f.people === p ? ' on' : '') + '" data-pp="' + p + '">' + p + '名</button>';
     frame('<h3 class="q">いつ、何名様ですか？</h3>'
       + '<p class="lbl">日にち</p><div class="dstrip">' + days + '<label class="dother">他の日<input type="date" id="r-date" value="' + f.date + '"></label></div>'
-      + '<p class="lbl">時間<span class="adj"><button type="button" data-adj="-5">−5分</button><b>' + esc(f.start) + '</b><button type="button" data-adj="5">＋5分</button></span></p><div class="tgrid">' + times + '</div>'
+      + '<p class="lbl">時間<b class="tnow">' + esc(f.start) + '</b></p><div class="hgrid">' + hours + '</div><div class="mgrid">' + mins + '</div>'
       + '<p class="lbl">人数</p><div class="pgrid">' + ppl + '<label class="pmore"><input type="number" id="r-people" min="1" max="200" inputmode="numeric" value="' + (f.people > 12 ? f.people : '') + '">名</label></div>',
       '<button type="button" class="btn" data-r="skip"' + (f.people ? '' : ' disabled') + '>テーブル選択をスキップ</button>'
       + '<button type="button" class="btn dark big" data-r="to2"' + (f.people ? '' : ' disabled') + '>テーブルを選ぶ</button>');
@@ -249,7 +259,8 @@
 
   /* 担当者：お店で入れる予約（電話など）で選ぶ。ネット予約（ホームページ・アプリ）と直接来店は選ばない。
      新しく入れるときは必ず選ぶ（1人も入っていなければ選ばずに入れられる）。
-     並びは、社員（いつも先。「設定」の「担当者」に並んでいる順）→ アルバイト（あいうえお順） */
+     並びは、社員（いつも先。「設定」の「担当者」に並んでいる順）→ アルバイト（あいうえお順）。
+     社員は押して選ぶ。アルバイトは人数が多いので、プルダウンで選ぶ（2026-11-04 ko-dai さんの指示「アルバイトの名前はプルダウンで選択する方法に」） */
   var NO_STAFF = { 'ホームページ': true, 'アプリ': true, '直接来店': true };
   function staffGroups() {
     var emp = st.conf.staff || [], pt = D.sortPart((st.conf.parttime || []).filter(function (n) { return emp.indexOf(n) < 0; }), st.conf.partReads);
@@ -260,10 +271,13 @@
     if (!needStaff()) return '';
     var g = staffGroups(), must = !f.id && g.emp.length + g.pt.length > 0;
     var chips = function (list) { return list.map(function (n) { return '<button type="button" class="kchip' + (n === f.staff ? ' on' : '') + '" data-stf="' + esc(n) + '">' + esc(n) + '</button>'; }).join(''); };
+    var ptOn = g.pt.indexOf(f.staff) >= 0;
+    if (!g.emp.length && !g.pt.length && !g.gone.length) return '<p class="lbl">担当者</p><p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>';
     return '<p class="lbl">担当者' + (must ? '<span class="need">必須</span>' : '') + '</p>'
-      + (g.emp.length + g.pt.length + g.gone.length ? '<div class="kgrid" id="r-staff">' + chips(g.emp) + chips(g.gone)
-        + (g.pt.length ? '<span class="stf-sep">アルバイト</span>' + chips(g.pt) : '') + '</div>'
-        : '<p class="muted">担当者の名前は、「設定」の「担当者」で入れられます。</p>');
+      + (g.emp.length + g.gone.length ? '<div class="kgrid" id="r-staff">' + chips(g.emp) + chips(g.gone) + '</div>' : '')
+      + (g.pt.length ? '<label for="r-pt" class="stf-pt">アルバイト</label><select id="r-pt"' + (ptOn ? ' class="on"' : '') + '>'
+        + '<option value="">' + (ptOn ? '（選ばない）' : 'アルバイトから選ぶ') + '</option>'
+        + g.pt.map(function (n) { return '<option value="' + esc(n) + '"' + (n === f.staff ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>' : '');
   }
 
   /* お名前：苗字と名前の2欄（カタカナで入れる）。保存は半角の空白でつなぐ。ひらがなで入れたらカタカナにする。
@@ -388,15 +402,15 @@
   sheet.addEventListener('click', function (e) {
     if (!f) return;
     var t = e.target;
-    var b = t.closest('[data-r],[data-step],[data-d],[data-tm],[data-pp],[data-adj],[data-keep],[data-kw],[data-stf],[data-pick]');
+    var b = t.closest('[data-r],[data-step],[data-d],[data-tm],[data-hr],[data-pp],[data-keep],[data-kw],[data-stf],[data-pick]');
     if (!b) return;
     readStep3();
     var ds = b.dataset;
     if (ds.step) return go(Number(ds.step));
     if (ds.d) { f.date = ds.d; D.ensureDate(f.date).then(draw); return draw(); }
-    if (ds.tm) { f.start = ds.tm; return draw(); }
-    if (ds.pp) { f.people = Number(ds.pp); return draw(); }
-    if (ds.adj) { f.start = D.hm(Math.max(0, D.toMin(f.start) + Number(ds.adj))); return draw(); }
+    if (ds.tm) { f.start = ds.tm; return redraw1(); }
+    if (ds.hr) { f.start = D.hm(Number(ds.hr) * 60 + D.toMin(f.start) % 60); return redraw1(); }   // 分はそのまま
+    if (ds.pp) { f.people = Number(ds.pp); return redraw1(); }
     if (ds.keep) { f.keep = Math.max(30, Math.min(1410, f.keep + Number(ds.keep))); var sc = $('sh-body').scrollTop; step2(); $('sh-body').scrollTop = sc; return; }
     if (ds.kw) { var i = f.keywords.indexOf(ds.kw); if (i >= 0) f.keywords.splice(i, 1); else f.keywords.push(ds.kw); b.classList.toggle('on'); return; }
     if (ds.stf) { f.staff = f.staff === ds.stf ? '' : ds.stf; $('r-staffbox').innerHTML = staffBox(); return; }   // 1人だけ選ぶ（もう一度押すと外す）
@@ -435,6 +449,7 @@
     if (!f) return;
     if (e.target.id === 'r-date' && e.target.value) { f.date = e.target.value; D.ensureDate(f.date).then(draw); draw(); }
     if (e.target.id === 'r-people') draw();
+    if (e.target.id === 'r-pt') { f.staff = e.target.value; $('r-staffbox').innerHTML = staffBox(); }   // アルバイトを選ぶと、社員のボタンは外れる
     if (e.target.id === 'r-route' || e.target.id === 'r-dessert') {
       var sc = $('sh-body').scrollTop; readStep3(); step3(); $('sh-body').scrollTop = sc;
       if (e.target.id === 'r-dessert' && f.dessert && $('r-plate')) $('r-plate').focus({ preventScroll: true });

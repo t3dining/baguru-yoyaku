@@ -267,29 +267,31 @@ p{margin:0}
 .dchip.on b,.dchip.on small,.dchip.on em{color:#fff}
 .dother{flex:none; display:flex; flex-direction:column; justify-content:center; gap:2px; padding:4px 8px; font-size:12px; font-weight:700; border:2px dashed var(--line2); border-radius:var(--r)}
 .dother input{border:1px solid var(--line2); border-radius:4px; padding:4px; font-size:14px}
-.tgrid{display:grid; gap:4px}
-.trow{display:flex; align-items:center; gap:4px}
-.th{width:46px; flex:none; font-size:13px; font-weight:900; color:var(--muted)}
-.tchip{flex:1; max-width:110px; min-height:40px; border:1px solid var(--line2); background:#fff; border-radius:var(--r); font-family:var(--en); font-size:16px; font-weight:600}
-.tchip.off{background:#f1ece5; color:#9a8f85}
-.tchip.on{background:var(--coal); border-color:var(--coal); color:#fff}
+/* 予約登録の時間：上の段で「時」、下の段で「分」（5分きざみ）を選ぶ（2026-11-04 から。前は10分きざみの表） */
+.tnow{font-family:var(--en); font-size:22px; font-weight:600; color:var(--coal)}
+.hgrid,.mgrid{display:grid; gap:6px}
+.hgrid{grid-template-columns:repeat(auto-fill,minmax(58px,1fr)); margin-bottom:10px}
+.mgrid{grid-template-columns:repeat(6,1fr); padding:8px; background:#f6f1ea; border-radius:var(--r)}
+.hchip{min-height:44px; border:2px solid var(--line2); background:#fff; border-radius:var(--r); font-family:var(--en); font-size:19px; font-weight:600}
+.hchip small{font-family:inherit; font-size:12px; font-weight:700; margin-left:1px}
+.tchip{min-height:42px; border:1px solid var(--line2); background:#fff; border-radius:var(--r); font-family:var(--en); font-size:16px; font-weight:600}
+.hchip.off,.tchip.off{background:#f1ece5; color:#9a8f85}
+.hchip.on,.tchip.on{background:var(--coal); border-color:var(--coal); color:#fff}
 .pgrid,.kgrid{display:flex; flex-wrap:wrap; gap:6px}
 .pchip,.kchip{min-height:46px; min-width:64px; padding:6px 12px; border:2px solid var(--line2); background:#fff; border-radius:var(--r); font-weight:900; font-size:16px}
 .kchip{min-height:40px; font-size:14px; font-weight:700}
 .pchip.on,.kchip.on{background:var(--coal); border-color:var(--coal); color:#fff}
 .pmore{display:flex; align-items:center; gap:4px; font-weight:700}
 .pmore input{width:76px; min-height:46px; padding:6px 8px; border:2px solid var(--line2); border-radius:var(--r); font-size:16px}
-.tc-g{margin-bottom:10px}
-.tc-gn{font-size:12px; font-weight:900; color:var(--muted); margin-bottom:4px}
-.tc-row{display:flex; flex-wrap:wrap; gap:6px}
-.tc{display:flex; flex-direction:column; align-items:flex-start; width:110px; min-height:70px; padding:6px 10px; border:2px solid var(--line2); background:#fff; border-radius:var(--r); text-align:left; line-height:1.3}
-.tc b{font-family:var(--en); font-size:18px; font-weight:600}
-.tc small{font-size:12px; color:var(--muted); font-weight:700}
-.tc em{font-style:normal; font-size:11.5px; color:var(--ok); font-weight:700; margin-top:2px; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.tc.busy{background:repeating-linear-gradient(135deg,#efe9e2 0 6px,#e6dfd6 6px 12px)}
-.tc.busy em{color:#7a7069}
-.tc.on{background:var(--coal); border-color:var(--coal); color:#fff}
-.tc.on small,.tc.on em{color:#ddd}
+/* 席を選ぶ見取り図（予約登録の2段目・リクエストの承認。2026-11-04 から）。卓の形はテーブル管理の .ft を使う */
+.tc-map{overflow-x:auto; background:#fbf8f3; border:1px solid var(--line); border-radius:var(--r); padding:6px}
+.tc-map .floor-scale{margin:0 auto}
+.tcf .ft-box{padding-top:20px}
+.tcf-st{font-size:17px; color:var(--ok); max-width:92%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tcf.busy .ft-box{background:repeating-linear-gradient(135deg,#efe9e2 0 8px,#e2dad0 8px 16px)}
+.tcf.busy .tcf-st{color:#6f655d}
+.tcf.on .ft-box{background:var(--coal); border-color:var(--coal)}
+.tcf.on .ft-cap,.tcf.on .tcf-st,.tcf.on .ft-name{color:#fff}
 .tc-warn{margin-top:8px; padding:8px 12px; border-radius:var(--r); font-weight:700; font-size:14px}
 .tc-warn.yellow{background:#fff4cf; color:#6b5200; border-left:4px solid #e2b400}
 .tc-warn.red{background:#fbe9e5; color:#8d2412; border-left:4px solid var(--ember)}
@@ -393,8 +395,11 @@ dl.conf dd{margin:0; font-weight:700}
 .ft .chairs{position:absolute; left:0; right:0; display:flex; justify-content:center; gap:22%}
 .ft .chairs.ch-top{top:0} .ft .chairs.ch-bottom{bottom:0}
 .ft .chairs i{display:block; width:24%; height:12px; border-radius:6px; background:#bdb3a7}
-.ft-name{position:absolute; top:calc(100% + 8px); left:0; right:0; font-family:var(--en); font-size:22px; font-weight:600; color:#4a413a}
-.ft.k-counter .ft-name{top:16px; left:12px; right:auto; font-size:16px; z-index:1}
+/* 卓番は、どの卓も中の左上（2026-11-04 ko-dai さんの指示「卓番の位置を同じ位置に統一」。前はテーブルは下・カウンターは中だった。カウンターは上下・左右がくっついて並ぶので、下には出せない）。
+   座っているときは、名前の行を少し下げて卓番と重ねない */
+.ft-name{position:absolute; top:17px; left:12px; z-index:1; font-family:var(--en); font-size:22px; font-weight:600; line-height:1; color:#4a413a}
+.ft.seated .ft-name,.ft.soon .ft-name,.ft.over .ft-name{color:#fff}
+.ft.seated .ft-box,.ft.soon .ft-box,.ft.over .ft-box{padding-top:24px}
 .ft-next{position:absolute; top:-34px; left:50%; transform:translateX(-50%); white-space:nowrap; background:#fff; border:2px solid #b9ad9f; color:#7a7069; border-radius:6px; padding:0 10px; font-size:17px; font-weight:700}
 .ft-next.near{border-color:#e0301e; color:#e0301e}
 .ft-next::after{content:""; position:absolute; left:50%; bottom:-7px; margin-left:-6px; border:6px solid transparent; border-top-color:inherit; border-bottom:0}
@@ -496,7 +501,8 @@ dl.conf dd{margin:0; font-weight:700}
 .stf-add{display:flex; flex-wrap:wrap; gap:8px; max-width:560px}
 .stf-add input{flex:1; min-width:160px; font-size:16px; padding:10px 12px; border:1px solid var(--line2); border-radius:var(--r); background:#fff}
 #set-staff .empty{padding:6px 0 12px}
-.stf-sep{flex-basis:100%; font-size:12.5px; font-weight:700; color:var(--muted); margin-top:4px}   /* 予約登録の担当者：アルバイトの見出し */
+#r-staff + .stf-pt{margin-top:12px}   /* 予約登録の担当者：アルバイトはプルダウン（2026-11-04） */
+.fg select#r-pt.on{border:2px solid var(--coal); font-weight:700}
 .bnav{display:none}
 
 /* ---------- 画面の大きさごと ---------- */
@@ -589,5 +595,5 @@ dl.conf dd{margin:0; font-weight:700}
 .cr:active{background:#fdfaf6}
 a,button,label,summary{-webkit-tap-highlight-color:transparent}
 .btn:active,.tool:active,.tbtn:active,.st:active{transform:translateY(1px)}
-.np:active,.tc:active,.dchip:active,.tchip:active,.pchip:active,.kchip:active,.seg:active{transform:scale(.97)}
+.np:active,.dchip:active,.hchip:active,.tchip:active,.pchip:active,.kchip:active,.seg:active{transform:scale(.97)}
 .nav:active{background:var(--coal3)}
