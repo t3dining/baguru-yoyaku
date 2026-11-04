@@ -388,7 +388,9 @@ dl.conf dd{margin:0; font-weight:700}
 .ft-who{font-size:22px; font-weight:900; line-height:1.08; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .ft-ppl{font-size:28px; line-height:1.02; white-space:nowrap; font-family:var(--en); font-weight:600}
 .ft-ppl small{font-family:var(--jp); font-size:.55em; font-weight:900; margin-left:.04em}
-.ft-ppl i{display:inline-block; width:.3em}
+.ft-who b{font-family:var(--en); font-weight:600}   /* お名前の隣の、座ってからの分 */
+.ft-who small{font-size:.7em; margin-left:.04em}
+.ft-who i{display:inline-block; width:.3em}
 .ft-left{position:absolute; top:17px; right:9px; z-index:1; font-size:21px; font-weight:900; line-height:1; color:#fff; white-space:nowrap}   /* 残り○分・○分超過（卓番の右） */
 .ft-box .fit-probe{max-width:none; width:max-content; flex:none}
 .ft.seated .ft-box{background:var(--ok); border-color:var(--ok2); color:#fff}
