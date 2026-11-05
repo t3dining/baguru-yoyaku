@@ -9,7 +9,8 @@
   'use strict';
 
   var NEED = { avail: 'days', reserve: 'no', contact: 'sent', ping: 'now', load: 'rows', save: 'row', decide: 'row', customers: 'list', customer: 'customer',
-    saveCustomer: 'customer', saveTables: 'tables', saveConf: 'conf', appContent: 'content', saveAppContent: 'v', myReserves: 'reserves' };
+    saveCustomer: 'customer', saveTables: 'tables', saveConf: 'conf', appContent: 'content', saveAppContent: 'v', myReserves: 'reserves',
+    nowAvail: 'accepting', quickReserve: 'no' };   // nowAvail・quickReserve は即予約（2026-11-05。ホームページの js/api.js と同じ）
 
   function wait(ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); }
   function fail(code, data) { var e = new Error(code); e.code = code; e.data = data || {}; return e; }
